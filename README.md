@@ -1,72 +1,87 @@
-# Lexic_Analyzer 
-by Eduardo Carvalho, Guilherme Bragaia e Nicolas Flores
+# 🔍 PampaCompiler
 
-## Descrição
-Este é um analisador léxico desenvolvido em Python, projetado para processar e identificar tokens em um texto de entrada com base em uma gramática definida. O projeto utiliza a biblioteca `PLY` (Python Lex-Yacc) para definição das regras léxicas e sintáticas. Este projeto faz parte do conteúdo prográmatico do componente curricular de Compiladores 2025 do curso de Ciência da Computação da Universidade Federal do Pampa (UNIPAMPA). Orientações pelo docente Claudio Schepke. 
+**Autores:** Eduardo Carvalho, Guilherme Bragaia e Nicolas Flores  
+**Disciplina:** Compiladores — Ciência da Computação, UNIPAMPA  
+**Orientador:** Prof. Claudio Schepke  
+**Ano:** 2025
 
-## Estrutura do Projeto
-O projeto está organizado nos seguintes arquivos:
+---
 
-- `__main__.py` - Arquivo principal para execução do analisador.
-- `tokens.py` - Definição dos tokens usados no analisador.
-- `grammar.py` - Regras gramaticais para análise sintática.
-- `ex1.por` - Arquivo de exemplo de entrada.
-- `Readme.txt` - Documentação auxiliar.
-- `.gitignore` - Lista de arquivos e diretórios ignorados pelo Git.
-- `pyproject.toml` - Configuração do projeto.
+## 📘 Descrição
 
-## Requisitos
-Para executar o analisador, é necessário ter instalado:
-- Python 3.10+
-- Biblioteca `PLY`
+Este projeto é um **analisador léxico e sintático completo chamado PampaCompiler** desenvolvido em Python, utilizando a biblioteca [`PLY`](https://www.dabeaz.com/ply/) (Python Lex-Yacc). Seu objetivo é processar arquivos de entrada com base em uma gramática definida, reconhecendo tokens e estruturas sintáticas, além de realizar análise de estruturas e regras mais complexas da linguagem.
 
-Instalação das dependências:
+Faz parte das atividades práticas da disciplina de **Compiladores**, no curso de Ciência da Computação da **Universidade Federal do Pampa (UNIPAMPA)**.
+
+---
+
+## 📁 Estrutura do Projeto
+
+| Arquivo         | Função                                                                 |
+|-----------------|------------------------------------------------------------------------|
+| `__main__.py`   | Ponto de entrada do analisador.                                         |
+| `tokens.py`     | Definição dos tokens e expressões regulares.                           |
+| `grammar.py`    | Regras gramaticais para análise sintática.                             |
+| `ex1.por`       | Arquivo de exemplo com código em pseudolinguagem.                      |
+| `Readme.txt`    | Anotações e informações complementares do projeto.                     |
+| `.gitignore`    | Arquivos/diretórios ignorados pelo Git.                                |
+| `pyproject.toml`| Arquivo de configuração do Poetry.                                     |
+
+---
+
+## ⚙️ Requisitos
+
+- Python **3.10+**
+- [`Poetry`](https://python-poetry.org/) instalado
+- Biblioteca `PLY` (instalada automaticamente via Poetry)
+
+### 📦 Instalação das dependências
+
 ```bash
 poetry install
 ```
-Acessar o ambiente virtual:
+
+### 🚪 Acesso ao ambiente virtual
+
 ```bash
 poetry shell
 ```
 
-## Como Usar
-Para executar o analisador léxico:
+---
+
+## ▶️ Como Executar
+
+Para rodar o analisador com um arquivo de exemplo:
+
 ```bash
 python __main__.py ex1.por
 ```
-Isso processará o arquivo de exemplo `ex1.por`, identificando e classificando os tokens.
 
-## Contribuição
-Sinta-se à vontade para contribuir com melhorias no projeto. Para isso:
-1. Faça um fork do repositório.
-2. Crie uma branch para suas modificações: `git checkout -b minha-feature`.
-3. Submeta um pull request.
+O analisador irá processar `ex1.por`, reconhecer os tokens válidos, aplicar a gramática definida e exibir os resultados no console.
 
-## Licença
-Este projeto está licenciado sob a Licença MIT.
+---
 
-```
-MIT License
+## 🤝 Contribuição
 
-Copyright (c) 2025
+Contribuições são bem-vindas! Para colaborar:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Faça um **fork** do projeto.
+2. Crie uma nova branch:
+   ```bash
+   git checkout -b minha-feature
+   ```
+3. Faça suas alterações e envie um **pull request**.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+---
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+## 📄 Licença
 
+Distribuído sob a **Licença MIT**. Veja o arquivo [`LICENSE`](LICENSE) para mais informações.
 
+---
+
+<div align="center">
+
+🧠 *"Construir um compilador é entender como o pensamento vira máquina."*
+
+</div>

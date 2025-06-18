@@ -1,4 +1,4 @@
-# 🔍 PampaCompiler
+# 🧾 PampaCompiler
 
 **Autores:** Eduardo Carvalho, Guilherme Bragaia e Nicolas Flores  
 **Disciplina:** Compiladores — Ciência da Computação, UNIPAMPA  
@@ -9,9 +9,27 @@
 
 ## 📘 Descrição
 
-Este projeto é um **analisador léxico e sintático completo chamado PampaCompiler** desenvolvido em Python, utilizando a biblioteca [`PLY`](https://www.dabeaz.com/ply/) (Python Lex-Yacc). Seu objetivo é processar arquivos de entrada com base em uma gramática definida, reconhecendo tokens e estruturas sintáticas, além de realizar análise de estruturas e regras mais complexas da linguagem.
+**PampaCompiler** é um **compilador educacional** desenvolvido em Python, com suporte à linguagem **Portugol**.  
+Ele realiza **análise léxica** e **análise sintática** utilizando a biblioteca [`PLY`](https://www.dabeaz.com/ply/), processando código-fonte em Portugol e identificando estruturas válidas conforme uma gramática definida.
 
-Faz parte das atividades práticas da disciplina de **Compiladores**, no curso de Ciência da Computação da **Universidade Federal do Pampa (UNIPAMPA)**.
+Esse projeto foi criado como parte da disciplina de **Compiladores**, no curso de Ciência da Computação da **Universidade Federal do Pampa (UNIPAMPA)**, com foco em ensino e experimentação de conceitos fundamentais de compiladores.
+
+---
+
+## 💡 Exemplo de Entrada
+
+Dado um código como:
+
+```portugol
+inteiro x;
+x := 10;
+```
+
+O PampaCompiler:
+
+- Reconhece os tokens: `inteiro`, `x`, `:=`, `10`, `;`
+- Valida a estrutura gramatical
+- (Opcionalmente: prepara para futuras fases como interpretação ou geração de código)
 
 ---
 
@@ -19,13 +37,13 @@ Faz parte das atividades práticas da disciplina de **Compiladores**, no curso d
 
 | Arquivo         | Função                                                                 |
 |-----------------|------------------------------------------------------------------------|
-| `__main__.py`   | Ponto de entrada do analisador.                                         |
+| `__main__.py`   | Ponto de entrada do compilador.                                        |
 | `tokens.py`     | Definição dos tokens e expressões regulares.                           |
 | `grammar.py`    | Regras gramaticais para análise sintática.                             |
-| `ex1.por`       | Arquivo de exemplo com código em pseudolinguagem.                      |
-| `Readme.txt`    | Anotações e informações complementares do projeto.                     |
+| `ex1.por`       | Exemplo de código em Portugol.                                          |
+| `Readme.txt`    | Anotações e informações complementares.                                |
 | `.gitignore`    | Arquivos/diretórios ignorados pelo Git.                                |
-| `pyproject.toml`| Arquivo de configuração do Poetry.                                     |
+| `pyproject.toml`| Configuração do projeto com o Poetry.                                  |
 
 ---
 
@@ -51,13 +69,13 @@ poetry shell
 
 ## ▶️ Como Executar
 
-Para rodar o analisador com um arquivo de exemplo:
+Para rodar o compilador com um arquivo de exemplo:
 
 ```bash
 python __main__.py ex1.por
 ```
 
-O analisador irá processar `ex1.por`, reconhecer os tokens válidos, aplicar a gramática definida e exibir os resultados no console.
+O compilador irá processar `ex1.por`, reconhecer os tokens, aplicar a gramática definida e exibir os resultados no console.
 
 ---
 

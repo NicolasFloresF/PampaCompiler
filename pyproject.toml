@@ -1,19 +1,19 @@
-[tool.poetry]
-name = "lexic-analizer"
+[project]
+name = "pampa-compiler"
 version = "0.1.0"
-description = ""
-authors = ["NicolasFloresF <nick.lasff@gmail.com>"]
+description = "Educational compiler that translates Portugol into x86-64 assembly"
 readme = "README.md"
+authors = [{ name = "NicolasFloresF", email = "nick.lasff@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "graphviz>=0.20.3",
+    "ply>=3.11",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-ply = "^3.11"
-graphviz = "^0.20.3"
+[dependency-groups]
+dev = [
+    "ruff>=0.17.4",
+]
 
-
-[tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+line-length = 120

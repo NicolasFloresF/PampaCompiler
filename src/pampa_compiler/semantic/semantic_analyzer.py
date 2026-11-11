@@ -94,9 +94,9 @@ def semantic_analysis(node, table, global_table):
                     print(f"[Line {variable.lineno}]: {e}")
                     sys.exit(1)
 
-                if declared.type != "inteiro":
+                if declared.type not in ["inteiro", "logico"]:
                     raise TypeMismatchError(
-                        f"Type mismatch: leia only reads 'inteiro' values, but Symbol [{declared.name}] has type '{declared.type}'",
+                        f"Type mismatch: leia only reads 'inteiro' and 'logico' values, but Symbol [{declared.name}] has type '{declared.type}'",
                         node.lineno,
                     )
 

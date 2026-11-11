@@ -231,11 +231,14 @@ def print_handler(node, table):
 
 
 def read_handler(node, table):
+    # choosing the runtime routine by the type of each variable
+    routines = {"inteiro": "pampa_read_int", "logico": "pampa_read_bool"}
     code = ""
     for variable in node.children[1:-1]:
+        declared = table.lookup(variable.value)
         code += f"    # leia ({variable.value})\n"
-        code += "    call pampa_read_int\n"
-        code += f"    movq %rax, {table.lookup(variable.value).offset}(%rbp)\n"
+        code += f"    call {routines[declared.type]}\n"
+        code += f"    movq %rax, {declared.offset}(%rbp)\n"
     return code
 
 

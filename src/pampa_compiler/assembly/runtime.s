@@ -116,8 +116,87 @@ pampa_read_int_end:
     leave
     ret
 
+# Reads one line from the standard input and returns 1 for "verdadeiro" and 0
+# for "falso" in %rax, ignoring spaces and '\r'. Any other line, or the end of
+# the input, stops the program with a message and exit status 1.
+pampa_read_bool:
+    push %rbp
+    mov %rsp, %rbp
+    sub $32, %rsp                   # -32(%rbp): up to 16 characters; -1(%rbp): byte being read
+    xor %r8, %r8                    # %r8 = characters in the line, ignored ones excluded
+pampa_read_bool_next:
+    mov $0, %rax                    # read
+    mov $0, %rdi                    # standard input
+    lea -1(%rbp), %rsi
+    mov $1, %rdx
+    syscall
+    cmp $1, %rax
+    jne pampa_read_bool_check       # end of the input or error
+    movzbq -1(%rbp), %rax
+    cmp $10, %rax                   # '\n'
+    je pampa_read_bool_check
+    cmp $32, %rax                   # ' '
+    je pampa_read_bool_next
+    cmp $13, %rax                   # '\r'
+    je pampa_read_bool_next
+    cmp $16, %r8
+    jae pampa_read_bool_count       # too long to be a valid word: only counting
+    mov %al, -32(%rbp,%r8)
+pampa_read_bool_count:
+    inc %r8
+    jmp pampa_read_bool_next
+pampa_read_bool_check:
+    lea -32(%rbp), %rdi
+    mov %r8, %rsi
+    lea pampa_true(%rip), %rdx
+    mov $10, %rcx                   # length of "verdadeiro"
+    call pampa_same_text
+    test %rax, %rax
+    jnz pampa_read_bool_end         # %rax = 1
+    lea -32(%rbp), %rdi
+    mov %r8, %rsi
+    lea pampa_false(%rip), %rdx
+    mov $5, %rcx                    # length of "falso"
+    call pampa_same_text
+    test %rax, %rax
+    jz pampa_read_bool_invalid
+    xor %rax, %rax                  # 0 for falso
+pampa_read_bool_end:
+    leave
+    ret
+pampa_read_bool_invalid:
+    mov $1, %rax                    # write
+    mov $2, %rdi                    # standard error
+    lea pampa_invalid_bool(%rip), %rsi
+    mov $pampa_invalid_bool_length, %rdx
+    syscall
+    mov $60, %rax                   # exit
+    mov $1, %rdi
+    syscall
+
+# Returns 1 in %rax when the %rsi bytes at %rdi are the %rcx bytes at %rdx, 0 otherwise.
+pampa_same_text:
+    xor %rax, %rax
+    cmp %rcx, %rsi
+    jne pampa_same_text_end
+pampa_same_text_byte:
+    test %rcx, %rcx
+    jz pampa_same_text_equal
+    dec %rcx
+    movb (%rdi,%rcx), %r10b
+    cmpb (%rdx,%rcx), %r10b
+    jne pampa_same_text_end
+    jmp pampa_same_text_byte
+pampa_same_text_equal:
+    mov $1, %rax
+pampa_same_text_end:
+    ret
+
     .section .rodata
 pampa_true:
     .string "verdadeiro"
 pampa_false:
     .string "falso"
+pampa_invalid_bool:
+    .ascii "Runtime error: leia expected verdadeiro or falso\n"
+    .set pampa_invalid_bool_length, . - pampa_invalid_bool

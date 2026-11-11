@@ -1,13 +1,16 @@
 programa {
-  // returns 3 * 3 + 4 * 4 = 25, or 0 if that sum were even
+  // prints 3 * 3 + 4 * 4 and whether it is even
   funcao inicio() {
     inteiro a = 3
     inteiro b = 4
     inteiro total = sum(square(a), square(b))
+    escreva(a, " * ", a, " + ", b, " * ", b, " = ", total, "\n")
     se (is_even(total)) {
-      retorne 0
+      escreva(total, " is even\n")
     }
-    retorne total
+    senao {
+      escreva(total, " is odd\n")
+    }
   }
 
   funcao inteiro square(inteiro x) {

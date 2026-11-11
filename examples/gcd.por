@@ -2,6 +2,7 @@ programa {
   funcao inicio() {
     inteiro a = 48
     inteiro b = 18
+    escreva("gcd(", a, ", ", b, ") = ")
     enquanto (a != b) {
       se (a > b) {
         a = a - b
@@ -10,6 +11,6 @@ programa {
         b = b - a
       }
     }
-    retorne a
+    escreva(a, "\n")
   }
 }

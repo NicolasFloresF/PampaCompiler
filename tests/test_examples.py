@@ -1,4 +1,4 @@
-"""Compiles every program in examples/, runs it and checks its exit status and output.
+"""Compiles every program in examples/, runs it and checks its output.
 
 Run from the repository root with: uv run python -m unittest discover tests
 """
@@ -13,24 +13,19 @@ TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(TESTS_DIR)
 EXAMPLES_DIR = os.path.join(REPO_DIR, "examples")
 
-# Expected exit status of each example: the value its inicio function returns.
-EXPECTED_EXIT_STATUS = {
-    "arithmetic.por": 52,
-    "precedence.por": 4,
-    "conditionals.por": 2,
-    "while_sum.por": 55,
-    "for_factorial.por": 120,
-    "nested_loops.por": 45,
-    "gcd.por": 6,
-    "logic.por": 2,
-    "primes.por": 10,
-    "functions.por": 25,
-    "fibonacci.por": 55,
-    "hello_world.por": 0,
-}
-
-# Expected standard output of the examples that print something; the others print nothing.
+# Expected standard output of each example.
 EXPECTED_OUTPUT = {
+    "arithmetic.por": "20 + 6 = 26\n20 - 6 = 14\n20 * 6 = 120\n20 / 6 = 3\n",
+    "precedence.por": "2 + 3 * 4 - (2 + 3) * 2 = 4\n",
+    "conditionals.por": "Score 75 is level 2\n",
+    "while_sum.por": "1 + 2 + ... + 10 = 55\n",
+    "for_factorial.por": "5! = 120\n",
+    "nested_loops.por": "Pairs (i, j) below 10 with i < j: 45\n",
+    "gcd.por": "gcd(48, 18) = 6\n",
+    "logic.por": "inside = verdadeiro\nhits = 2\n",
+    "primes.por": "2 3 5 7 11 13 17 19 23 29 \n10 primes below 30\n",
+    "functions.por": "3 * 3 + 4 * 4 = 25\n25 is odd\n",
+    "fibonacci.por": "0 1 1 2 3 5 8 13 21 34 55 \n",
     "hello_world.por": "Ola, mundo!\n3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n",
 }
 
@@ -107,18 +102,18 @@ def build_and_run(test_case: unittest.TestCase, source: str, stdin: str = "") ->
 
 
 class ExamplesTest(unittest.TestCase):
-    def test_every_example_has_an_expected_status(self):
+    def test_every_example_has_an_expected_output(self):
         example_names = sorted(name for name in os.listdir(EXAMPLES_DIR) if name.endswith(".por"))
-        self.assertEqual(example_names, sorted(EXPECTED_EXIT_STATUS))
+        self.assertEqual(example_names, sorted(EXPECTED_OUTPUT))
 
-    def test_examples_return_expected_status_and_output(self):
-        for example_name, expected_status in EXPECTED_EXIT_STATUS.items():
+    def test_examples_print_expected_output(self):
+        for example_name, expected_output in EXPECTED_OUTPUT.items():
             with self.subTest(example=example_name):
                 with open(os.path.join(EXAMPLES_DIR, example_name)) as example_file:
                     source = example_file.read()
                 executed = build_and_run(self, source)
-                self.assertEqual(executed.returncode, expected_status)
-                self.assertEqual(executed.stdout, EXPECTED_OUTPUT.get(example_name, ""))
+                self.assertEqual(executed.returncode, 0)
+                self.assertEqual(executed.stdout, expected_output)
 
 
 if __name__ == "__main__":

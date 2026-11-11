@@ -1,7 +1,11 @@
 programa {
-  // returns the 10th Fibonacci number, 55
+  // prints the Fibonacci numbers from the 0th to the 10th
   funcao inicio() {
-    retorne fibonacci(10)
+    inteiro i
+    para (i = 0; i <= 10; i++) {
+      escreva(fibonacci(i), " ")
+    }
+    escreva("\n")
   }
 
   funcao inteiro fibonacci(inteiro n) {

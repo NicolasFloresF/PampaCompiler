@@ -5,6 +5,6 @@ programa {
     para (i = 1; i <= 5; i++) {
       factorial = factorial * i
     }
-    retorne factorial
+    escreva("5! = ", factorial, "\n")
   }
 }

@@ -16,6 +16,7 @@ programa {
     se ((a > b) || (b < a)) {
       hits++
     }
-    retorne hits
+    escreva("inside = ", inside, "\n")
+    escreva("hits = ", hits, "\n")
   }
 }

@@ -12,9 +12,10 @@ programa {
         }
       }
       se (prime) {
+        escreva(n, " ")
         count++
       }
     }
-    retorne count
+    escreva("\n", count, " primes below 30\n")
   }
 }

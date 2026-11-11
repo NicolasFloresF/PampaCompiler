@@ -13,6 +13,6 @@ programa {
         level = 1
       }
     }
-    retorne level
+    escreva("Score ", score, " is level ", level, "\n")
   }
 }

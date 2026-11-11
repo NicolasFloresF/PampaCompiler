@@ -6,6 +6,6 @@ programa {
       total = total + counter
       counter++
     }
-    retorne total
+    escreva("1 + 2 + ... + 10 = ", total, "\n")
   }
 }

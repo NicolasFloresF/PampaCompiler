@@ -10,6 +10,6 @@ programa {
         }
       }
     }
-    retorne pairs
+    escreva("Pairs (i, j) below 10 with i < j: ", pairs, "\n")
   }
 }

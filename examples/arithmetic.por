@@ -6,6 +6,9 @@ programa {
     inteiro difference = a - b
     inteiro product = a * b
     inteiro quotient = a / b
-    retorne product / quotient + sum - difference
+    escreva(a, " + ", b, " = ", sum, "\n")
+    escreva(a, " - ", b, " = ", difference, "\n")
+    escreva(a, " * ", b, " = ", product, "\n")
+    escreva(a, " / ", b, " = ", quotient, "\n")
   }
 }

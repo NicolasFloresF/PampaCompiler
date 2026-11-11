@@ -136,7 +136,12 @@ def assignment_handler(node, table):
             code += f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n"
         else:
             code += f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n"
-    elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression", "call_function_expression"]:
+    elif expr.nodetype in [
+        "binary_expression",
+        "logical_expression",
+        "relational_expression",
+        "call_function_expression",
+    ]:
         code += expression_handler(expr, table)
         code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
 

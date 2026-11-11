@@ -36,6 +36,9 @@ label_counter = {
 
 labels = {}
 
+# registers that carry the first six arguments of a call, in order (System V calling convention)
+arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
+
 
 def new_label(value, base="label"):
     label_counter[base] += 1
@@ -65,6 +68,18 @@ def generate_func(node, table, global_table):
     print(f"    push %rbp")
     print(f"    mov %rsp, %rbp")
     print(f"    sub ${size}, %rsp\n")  # Reserve space for local variables
+
+    # copying each parameter into its slot: the first six arrive in registers, the others on the caller's stack
+    params = global_table.lookup(node.value).params
+    for index in range(len(params)):
+        offset = table.return_by_index(index).offset
+        if index < len(arg_regs):
+            print(f"    movq {arg_regs[index]}, {offset}(%rbp)")
+        else:
+            print(f"    movq {16 + (index - len(arg_regs)) * 8}(%rbp), %rax")
+            print(f"    movq %rax, {offset}(%rbp)")
+    if params:
+        print()
 
     for child in node.children[-2].children:
         generate_assembly(child, table, global_table)
@@ -264,7 +279,6 @@ def expression_handler(node, table):
 def call_expression_handler(args, table, func_name):
     print(f"    # {func_name}({', '.join([str(arg.value) for arg in args])})")
     code = ""
-    arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
 
     # Store generated expressions temporarily
     arg_codes = [expression_handler(arg, table) for arg in args]

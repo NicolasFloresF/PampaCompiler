@@ -27,6 +27,12 @@ EXPECTED_OUTPUT = {
     "functions.por": "3 * 3 + 4 * 4 = 25\n25 is odd\n",
     "fibonacci.por": "0 1 1 2 3 5 8 13 21 34 55 \n",
     "hello_world.por": "Ola, mundo!\n3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n",
+    "read_sum.por": "How many numbers? Number 1: Number 2: Number 3: Sum = 13\n",
+}
+
+# Standard input of the examples that read with leia; the others read nothing.
+EXAMPLE_INPUT = {
+    "read_sum.por": "3\n10\n-4\n7\n",
 }
 
 
@@ -111,7 +117,7 @@ class ExamplesTest(unittest.TestCase):
             with self.subTest(example=example_name):
                 with open(os.path.join(EXAMPLES_DIR, example_name)) as example_file:
                     source = example_file.read()
-                executed = build_and_run(self, source)
+                executed = build_and_run(self, source, EXAMPLE_INPUT.get(example_name, ""))
                 self.assertEqual(executed.returncode, 0)
                 self.assertEqual(executed.stdout, expected_output)
 

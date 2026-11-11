@@ -53,7 +53,10 @@ def generate_code(function_list, local_tables, global_table):
 
 
 def generate_func(node, table, global_table):
-    size = table.return_by_index(-1).offset * -1
+    # reserving no stack space when the function has no variables or parameters
+    size = 0
+    if table.return_table():
+        size = table.return_by_index(-1).offset * -1
     # rounding the frame up to a multiple of 16, as the x86-64 ABI requires a 16-byte aligned stack
     size = (size + 15) // 16 * 16
 

@@ -106,12 +106,13 @@ uv run python -m pampa_compiler --file examples/hello_world.por
 
 O compilador gera `examples/hello_world.asm` e desenha a AST em `ast.png`. Com a opção `--debug`, ele também grava os tokens, a AST e as tabelas de símbolos em `compile.out`.
 
-Para montar, ligar e executar o programa gerado:
+Para montar, ligar e executar o programa gerado (na pasta `build/`, ignorada pelo git):
 
 ```bash
-as examples/hello_world.asm -o hello_world.o
-ld hello_world.o -o hello_world
-./hello_world
+mkdir -p build
+as examples/hello_world.asm -o build/hello_world.o
+ld build/hello_world.o -o build/hello_world
+./build/hello_world
 ```
 
 ---

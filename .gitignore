@@ -173,6 +173,7 @@ cython_debug/
 *parsetab.py
 *.png
 *.asm
+*.o
 
 
 # project communication docs and full test suite (local only)

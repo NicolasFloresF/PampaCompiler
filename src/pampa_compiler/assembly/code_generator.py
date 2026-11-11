@@ -2,7 +2,7 @@ import os
 
 from pampa_compiler.core.symbol_table import *
 
-# entry point and routines behind escreva, appended to every program
+# entry point and routines behind escreva and leia, appended to every program
 RUNTIME_PATH = os.path.join(os.path.dirname(__file__), "runtime.s")
 
 # Registers and their usage:
@@ -111,6 +111,10 @@ def generate_assembly(node, table, global_table):
         code = print_handler(node, table)
         print(code)
 
+    elif node.nodetype == "read":
+        code = read_handler(node, table)
+        print(code)
+
     elif node.nodetype in ["binary_expression", "relational_expression", "logical_expression"]:
         expr_code = expression_handler(node, table)
         print(expr_code)
@@ -212,6 +216,14 @@ def print_handler(node, table):
     code += "    movq %rax, %rdi\n"
     code += f"    call {routines[node.expr_type]}\n"
 
+    return code
+
+
+def read_handler(node, table):
+    var_name = node.children[1].value
+    print(f"    # leia ({var_name})")
+    code = "    call pampa_read_int\n"
+    code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
     return code
 
 

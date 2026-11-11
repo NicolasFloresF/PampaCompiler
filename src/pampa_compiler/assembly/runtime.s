@@ -1,7 +1,7 @@
 
 # Runtime appended to every compiled program: the entry point and the routines
-# behind escreva, using Linux system calls only. Routine names start with
-# pampa_ so they do not clash with the functions of the program.
+# behind escreva and leia, using Linux system calls only. Routine names start
+# with pampa_ so they do not clash with the functions of the program.
 
     .text
     .global _start
@@ -74,6 +74,47 @@ pampa_print_bool:
 pampa_print_bool_false:
     lea pampa_false(%rip), %rdi
     jmp pampa_print_string
+
+# Reads one line from the standard input and returns it in %rax as a signed
+# integer. Reads byte by byte, so the next leia finds the following line;
+# skips characters that are not digits; an empty line or the end of the
+# input gives 0.
+pampa_read_int:
+    push %rbp
+    mov %rsp, %rbp
+    sub $16, %rsp
+    xor %r8, %r8                    # %r8 = value read so far
+    xor %r9, %r9                    # %r9 = 1 when a '-' was read
+pampa_read_int_next:
+    mov $0, %rax                    # read
+    mov $0, %rdi                    # standard input
+    lea -1(%rbp), %rsi
+    mov $1, %rdx
+    syscall
+    cmp $1, %rax
+    jne pampa_read_int_done         # end of the input or error
+    movzbq -1(%rbp), %rax
+    cmp $10, %rax                   # '\n'
+    je pampa_read_int_done
+    cmp $45, %rax                   # '-'
+    jne pampa_read_int_digit
+    mov $1, %r9
+    jmp pampa_read_int_next
+pampa_read_int_digit:
+    sub $48, %rax                   # '0'
+    cmp $9, %rax
+    ja pampa_read_int_next          # not a digit (unsigned compare also catches bytes below '0')
+    imul $10, %r8
+    add %rax, %r8
+    jmp pampa_read_int_next
+pampa_read_int_done:
+    mov %r8, %rax
+    test %r9, %r9
+    jz pampa_read_int_end
+    neg %rax
+pampa_read_int_end:
+    leave
+    ret
 
     .section .rodata
 pampa_true:

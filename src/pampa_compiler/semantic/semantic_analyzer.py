@@ -87,10 +87,16 @@ def semantic_analysis(node, table, global_table):
         # 'read' handler
         elif node.nodetype == "read":
             try:
-                table.lookup(node.children[1].value)
+                declared = table.lookup(node.children[1].value)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[1].lineno}]: {e}")
                 sys.exit(1)
+
+            if declared.type != "inteiro":
+                raise TypeMismatchError(
+                    f"Type mismatch: leia only reads 'inteiro' values, but Symbol [{declared.name}] has type '{declared.type}'",
+                    node.lineno,
+                )
 
         # 'if' and 'while' statement handler
         elif node.nodetype in ["if", "while"]:

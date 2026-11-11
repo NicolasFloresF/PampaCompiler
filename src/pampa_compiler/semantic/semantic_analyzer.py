@@ -92,6 +92,14 @@ def semantic_analysis(node, table, global_table):
                         node.lineno,
                     )
 
+        # 'print' handler
+        elif node.nodetype == "print":
+            try:
+                evaluate_expr_type(node.children[2], table)
+            except TypeMismatchError as e:
+                print(f"{e}")
+                sys.exit(1)
+
         # 'if' and 'while' statement handler
         elif node.nodetype in ["if", "while"]:
             condition = node.children[1]
@@ -106,14 +114,15 @@ def semantic_analysis(node, table, global_table):
                     f"Type mismatch: {node.nodetype} Condition must be of type 'logico', but got '{condition_type}' instead'",
                     node.lineno,
                 )
-            block = next((child for child in node.children if child.nodetype == "commands"), None)
-            if block:
-                for cmd in block.children:
-                    try:
-                        semantic_analysis(cmd, table, global_table)
-                    except Exception as e:
-                        print(f"{e}")
-                        sys.exit(1)
+            # visiting every block, so the 'senao' block of an 'if' is checked too
+            for block in node.children:
+                if block.nodetype == "commands":
+                    for cmd in block.children:
+                        try:
+                            semantic_analysis(cmd, table, global_table)
+                        except Exception as e:
+                            print(f"{e}")
+                            sys.exit(1)
 
         # 'for' loop handler'
         elif node.nodetype == "for":
@@ -156,6 +165,16 @@ def semantic_analysis(node, table, global_table):
                 raise InvalidForLoopError(
                     f"Invalid para loop: Invalid step expression in [para] loop", step_expr.lineno
                 )
+
+            # loop body
+            block = next((child for child in node.children if child.nodetype == "commands"), None)
+            if block:
+                for cmd in block.children:
+                    try:
+                        semantic_analysis(cmd, table, global_table)
+                    except Exception as e:
+                        print(f"{e}")
+                        sys.exit(1)
 
 
 def build_global_table(nodes, table=None):

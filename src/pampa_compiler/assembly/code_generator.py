@@ -231,10 +231,11 @@ def print_handler(node, table):
 
 
 def read_handler(node, table):
-    var_name = node.children[1].value
-    print(f"    # leia ({var_name})")
-    code = "    call pampa_read_int\n"
-    code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
+    code = ""
+    for variable in node.children[1:-1]:
+        code += f"    # leia ({variable.value})\n"
+        code += "    call pampa_read_int\n"
+        code += f"    movq %rax, {table.lookup(variable.value).offset}(%rbp)\n"
     return code
 
 

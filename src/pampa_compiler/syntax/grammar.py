@@ -299,13 +299,23 @@ def p_declaration_list(p):
 
 
 def p_read_statement(p):
-    """read_statement : READ LPAREN ID RPAREN"""
+    """read_statement : READ LPAREN identifier_list RPAREN"""
+    # placing the identifiers between the parentheses, so the variables are children[1:-1]
     children = [
         ASTnode("LPAREN", value=p[2], lineno=p.lineno(2)),
-        ASTnode("identifier", value=p[3], lineno=p.lineno(3)),
+        *p[3],
         ASTnode("RPAREN", value=p[4], lineno=p.lineno(4)),
     ]
     p[0] = ASTnode("read", children=children, lineno=p.lineno(1))
+
+
+def p_identifier_list(p):
+    """identifier_list : ID
+    | ID COMMA identifier_list"""
+    if len(p) == 2:
+        p[0] = [ASTnode("identifier", value=p[1], lineno=p.lineno(1))]
+    elif len(p) == 4:
+        p[0] = [ASTnode("identifier", value=p[1], lineno=p.lineno(1))] + p[3]
 
 
 def p_write_statement(p):

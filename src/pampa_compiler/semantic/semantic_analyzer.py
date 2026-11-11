@@ -100,6 +100,14 @@ def semantic_analysis(node, table, global_table):
                 print(f"{e}")
                 sys.exit(1)
 
+        # 'read' handler
+        elif node.nodetype == "read":
+            try:
+                table.lookup(node.children[1].value)
+            except SymbolNotFound as e:
+                print(f"[Line {node.children[1].lineno}]: {e}")
+                sys.exit(1)
+
         # 'if' and 'while' statement handler
         elif node.nodetype in ["if", "while"]:
             condition = node.children[1]

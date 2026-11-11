@@ -114,7 +114,8 @@ def t_NUMBER(t):
 
 
 def t_STRING(t):
-    r'".*"'
+    # ending at the first quote that is not escaped, so several strings can share a line
+    r'"([^"\\\n]|\\.)*"'
     t.type = "STRING"
     return t
 

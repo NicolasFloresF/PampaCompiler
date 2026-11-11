@@ -1,4 +1,4 @@
-from symbol_table import *
+from pampa_compiler.core.symbol_table import *
 
 # Registers and their usage:
 

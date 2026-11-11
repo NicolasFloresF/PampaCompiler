@@ -1,7 +1,7 @@
 import sys
 
-from symbol_table import *
-from ASTnode import ASTnode
+from pampa_compiler.core.symbol_table import *
+from pampa_compiler.core.ast_node import ASTnode
 
 
 def semantic_analysis(node, table, global_table):

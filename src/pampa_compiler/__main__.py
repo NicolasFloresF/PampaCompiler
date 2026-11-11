@@ -3,10 +3,10 @@ from argparse import ArgumentParser
 import os, sys
 
 # import project modules
-from tokens import *
-from grammar import *
-from semantic_analyzer import *
-from code_generator import *
+from pampa_compiler.lexical.tokens import *
+from pampa_compiler.syntax.grammar import *
+from pampa_compiler.semantic.semantic_analyzer import *
+from pampa_compiler.assembly.code_generator import *
 
 
 def read_file(file_name):

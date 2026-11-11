@@ -1,6 +1,6 @@
 """Compiles every program in examples/, runs it and checks its exit status.
 
-Run from the repository root with: python -m unittest discover tests
+Run from the repository root with: uv run python -m unittest discover tests
 """
 
 import os
@@ -12,7 +12,6 @@ import unittest
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(TESTS_DIR)
 EXAMPLES_DIR = os.path.join(REPO_DIR, "examples")
-COMPILER = os.path.join(REPO_DIR, "__main__.py")
 RUNTIME = os.path.join(TESTS_DIR, "runtime.s")
 
 # Expected exit status of each example: the value its inicio function returns.
@@ -55,7 +54,7 @@ def compile_program(source: str, work_dir: str) -> subprocess.CompletedProcess:
     program_path = os.path.join(work_dir, "program.por")
     with open(program_path, "w") as program_file:
         program_file.write(source)
-    return run_command([sys.executable, COMPILER, "--file", program_path], work_dir)
+    return run_command([sys.executable, "-m", "pampa_compiler", "--file", program_path], work_dir)
 
 
 def assemble_and_link(work_dir: str) -> subprocess.CompletedProcess:

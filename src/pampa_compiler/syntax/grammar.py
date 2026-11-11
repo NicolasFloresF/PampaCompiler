@@ -1,5 +1,5 @@
 import ply.yacc as yacc
-from ASTnode import ASTnode
+from pampa_compiler.core.ast_node import ASTnode
 
 # !Remember: expression is a tree node, but commands is not
 

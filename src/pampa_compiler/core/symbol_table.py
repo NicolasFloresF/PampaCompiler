@@ -1,4 +1,4 @@
-from exceptions import *
+from pampa_compiler.core.exceptions import *
 
 
 class symbol_table:

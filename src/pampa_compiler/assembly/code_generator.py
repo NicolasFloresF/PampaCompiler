@@ -141,6 +141,14 @@ def generate_assembly(node, table, global_table):
         for_handler(node, table, global_table)
 
 
+def store_number(value, offset):
+    # storing directly only 32-bit signed numbers: movq to memory takes no larger immediate,
+    # so the others go through %rax
+    if -(2**31) <= value < 2**31:
+        return f"    movq ${value}, {offset}(%rbp)\n"
+    return f"    movabsq ${value}, %rax\n    movq %rax, {offset}(%rbp)\n"
+
+
 def assignment_handler(node, table):
     print(f"    # {node.children[0].value} = {node.children[2].value}")
     code = ""
@@ -148,7 +156,7 @@ def assignment_handler(node, table):
     expr = node.children[2]
 
     if expr.nodetype == "number":
-        code += f"    movq ${expr.value}, {table.lookup(var_name).offset}(%rbp)\n"
+        code += store_number(expr.value, table.lookup(var_name).offset)
     elif expr.nodetype == "string":
         if expr.value not in labels:
             new_label(expr.value, "string")
@@ -175,7 +183,7 @@ def decls_handler(node, table, global_table):
 
                 if expr.nodetype == "number":
                     print(f"    # {node.children[0].value} = {node.children[2].value}")
-                    print(f"    movq ${expr.value}, {table.lookup(var_name).offset}(%rbp)\n")
+                    print(store_number(expr.value, table.lookup(var_name).offset))
 
                 elif expr.nodetype == "string":
                     print(f"    # {node.children[0].value} = {node.children[2].value}")

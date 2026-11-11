@@ -1,3 +1,5 @@
+import sys
+
 from symbol_table import *
 from ASTnode import ASTnode
 
@@ -19,7 +21,7 @@ def semantic_analysis(node, table, global_table):
                         semantic_analysis(cmd, table, global_table)
                     except Exception as e:
                         print(f"{e}")
-                        exit()
+                        sys.exit(1)
 
         # 'assignment_expression' handler
         elif node.nodetype == "assignment_expression":
@@ -27,13 +29,13 @@ def semantic_analysis(node, table, global_table):
                 declared = table.lookup(node.children[0].value)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[0].lineno}]: {e}")
-                exit()
+                sys.exit(1)
 
             try:
                 expr_type = evaluate_expr_type(node.children[2], table)
             except TypeMismatchError as e:
                 print(f"{e}")
-                exit()
+                sys.exit(1)
 
             if expr_type != declared.type:
                 raise TypeMismatchError(
@@ -47,7 +49,7 @@ def semantic_analysis(node, table, global_table):
                 declared = table.lookup(node.children[0].value)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[0].lineno}]: {e}")
-                exit()
+                sys.exit(1)
 
             if declared.type != "inteiro":
                 raise TypeMismatchError(
@@ -60,7 +62,7 @@ def semantic_analysis(node, table, global_table):
                 expr_type = evaluate_expr_type(node.children[1], table)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[0].lineno}]: {e}")
-                exit()
+                sys.exit(1)
 
         elif node.nodetype == "call_function_expression":
             func_name = node.children[0].value
@@ -68,7 +70,7 @@ def semantic_analysis(node, table, global_table):
                 declared = global_table.lookup(func_name)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[0].lineno}]: {e}")
-                exit()
+                sys.exit(1)
             params = next((child for child in node.children if child.nodetype == "expression_list"), None)
             if params:
                 arg_list = args_extract(params.children, table)
@@ -97,7 +99,7 @@ def semantic_analysis(node, table, global_table):
                 condition_type = evaluate_expr_type(condition, table)
             except TypeMismatchError as e:
                 print(f"{e}")
-                exit()
+                sys.exit(1)
 
             if condition_type != "logico":
                 raise TypeMismatchError(
@@ -111,7 +113,7 @@ def semantic_analysis(node, table, global_table):
                         semantic_analysis(cmd, table, global_table)
                     except Exception as e:
                         print(f"{e}")
-                        exit()
+                        sys.exit(1)
 
         # 'for' loop handler'
         elif node.nodetype == "for":
@@ -125,7 +127,7 @@ def semantic_analysis(node, table, global_table):
                     semantic_analysis(init_expr, table, global_table)
                 except Exception as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
             else:
                 raise InvalidForLoopError(
                     f"Invalid para loop: Invalid initialization expression in [para] loop", init_expr.lineno
@@ -136,7 +138,7 @@ def semantic_analysis(node, table, global_table):
                 cond_type = evaluate_expr_type(cond_expr, table)
             except TypeMismatchError as e:
                 print(f"{e}")
-                exit()
+                sys.exit(1)
             if cond_type != "logico":
                 raise TypeMismatchError(
                     f"Type mismatch: Condition of 'para' loop must be of type 'logico', but got '{cond_type}' instead'",
@@ -149,7 +151,7 @@ def semantic_analysis(node, table, global_table):
                     semantic_analysis(step_expr, table, global_table)
                 except Exception as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
             else:
                 raise InvalidForLoopError(
                     f"Invalid para loop: Invalid step expression in [para] loop", step_expr.lineno
@@ -173,7 +175,7 @@ def build_global_table(nodes, table=None):
                     )
                 except RedeclarationError as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
 
     return table
 
@@ -200,7 +202,7 @@ def build_local_table(node, table=None, var_type=None):
                 declarations_extract(decls, table, var_type)
             except TypeMismatchError as e:
                 print(f"{e}")
-                exit()
+                sys.exit(1)
 
     return table
 
@@ -220,7 +222,7 @@ def evaluate_expr_type(expr, table):
             sym = table.lookup(expr.value)
         except SymbolNotFound as e:
             print(f"[Line {expr.lineno}]: {e}")
-            exit()
+            sys.exit(1)
         return sym.type
     elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
         try:
@@ -228,7 +230,7 @@ def evaluate_expr_type(expr, table):
             right_type = evaluate_expr_type(expr.children[2], table)
         except TypeMismatchError as e:
             print(f"{e}")
-            exit()
+            sys.exit(1)
 
         if expr.nodetype == "binary_expression":
             if left_type and right_type in ["inteiro", "real"]:
@@ -269,14 +271,14 @@ def declarations_extract(decls, table, var_type):
                     table.define(child.value, symbol(child.value, var_type, child.lineno, offset=offset))
                 except RedeclarationError as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
             elif child.nodetype == "atribuition":
                 expr = decls.children[idx + 1]
                 try:
                     expr_type = evaluate_expr_type(expr, table)
                 except TypeMismatchError as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
                 if expr_type != var_type:
                     raise TypeMismatchError(
                         f"Type mismatch: Symbol [{decls.children[idx - 1].value}] expected type '{var_type}' but get type '{expr_type}' instead",
@@ -287,7 +289,7 @@ def declarations_extract(decls, table, var_type):
                     declarations_extract(child, table, var_type)
                 except TypeMismatchError as e:
                     print(f"{e}")
-                    exit()
+                    sys.exit(1)
 
 
 def params_extract(param, table):
@@ -304,7 +306,7 @@ def params_extract(param, table):
             )
         except RedeclarationError as e:
             print(f"{e}")
-            exit()
+            sys.exit(1)
         if param.children[-1].nodetype == "param":
             params_extract(param.children[-1], table)
 
@@ -351,7 +353,7 @@ def args_extract(children, table, param_list=None):
                 id_type = evaluate_expr_type(child, table)
             except SymbolNotFound as e:
                 print(f"[Line {child.lineno}]: {e}")
-                exit()
+                sys.exit(1)
 
             param_list.append(id_type)
         elif child.nodetype == "expression_list":

@@ -69,6 +69,12 @@ def generate_func(node, table, global_table):
     for child in node.children[-2].children:
         generate_assembly(child, table, global_table)
 
+    # returning 0 when the function does not end with 'retorne', instead of running into the code after it
+    if node.children[-2].children[-1].nodetype != "return_expression":
+        print("    movq $0, %rax")
+        print("    leave")
+        print("    ret")
+
 
 def generate_assembly(node, table, global_table):
     if node.nodetype == "assignment_expression":

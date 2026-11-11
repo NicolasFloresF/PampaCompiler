@@ -120,9 +120,9 @@ def t_STRING(t):
 
 
 def t_COMMENT(t):
-    r"//.*"
-    # discarding the comment: PLY drops tokens whose rule returns nothing
-    pass
+    r"//.*|/\*(.|\n)*?\*/"
+    # discarding the comment (PLY drops tokens whose rule returns nothing), but counting the lines a block comment spans
+    t.lexer.lineno += t.value.count("\n")
 
 
 def t_newline(t):

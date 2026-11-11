@@ -87,8 +87,11 @@ def generate_assembly(node, table, global_table):
         print(expr_code)
 
     elif node.nodetype == "call_function_expression":
+        # calls without arguments have no expression_list child
+        args = []
         if node.children[-2].nodetype == "expression_list":
-            code = call_expression_handler(node.children[-2], table, node.children[0].value)
+            args = node.children[-2].children
+        code = call_expression_handler(args, table, node.children[0].value)
         print(code)
 
     elif node.nodetype == "return_expression":
@@ -252,11 +255,10 @@ def expression_handler(node, table):
     return f"    # Unhandled expression: {node.nodetype}\n"
 
 
-def call_expression_handler(node, table, func_name):
-    print(f"    # {func_name}({', '.join([arg.value for arg in node.children])})")
+def call_expression_handler(args, table, func_name):
+    print(f"    # {func_name}({', '.join([arg.value for arg in args])})")
     code = ""
     arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
-    args = node.children
 
     # Store generated expressions temporarily
     arg_codes = [expression_handler(arg, table) for arg in args]

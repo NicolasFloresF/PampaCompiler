@@ -1,3 +1,5 @@
+import sys
+
 import ply.yacc as yacc
 from pampa_compiler.core.ast_node import ASTnode
 
@@ -359,4 +361,9 @@ def p_for_statement(p):
 
 
 def p_error(p):
-    print(f"Syntax error at '{p.value} {p.type} {p.lexpos} '")
+    # stopping at the first error, because the grammar has no error recovery rules
+    if p is None:
+        print("Syntax error: unexpected end of file")
+    else:
+        print(f"[Line {p.lineno}]: Syntax error at '{p.value}'")
+    sys.exit(1)

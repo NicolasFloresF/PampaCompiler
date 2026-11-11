@@ -6,6 +6,7 @@ import os, sys
 from pampa_compiler.lexical.tokens import *
 from pampa_compiler.syntax.grammar import *
 from pampa_compiler.semantic.semantic_analyzer import *
+from pampa_compiler.semantic.table_builder import *
 from pampa_compiler.assembly.code_generator import *
 
 

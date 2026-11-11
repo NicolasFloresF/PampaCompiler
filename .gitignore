@@ -182,5 +182,6 @@ cython_debug/
 *.asm
 
 
-# project communication docs (local only)
+# project communication docs and full test suite (local only)
 dev-docs/
+dev-tests/

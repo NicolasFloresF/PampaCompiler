@@ -214,6 +214,12 @@ def build_local_table(node, table=None, var_type=None):
             if block:
                 for cmd in block.children:
                     build_local_table(cmd, table)
+        elif node.nodetype in ["if", "while", "for"]:
+            # registering declarations made inside blocks in the function table, as there is no block scope
+            for block in node.children:
+                if block.nodetype == "commands":
+                    for cmd in block.children:
+                        build_local_table(cmd, table)
         elif node.nodetype == "declaration":
             var_type = node.children[0].value
             decls = node.children[1]

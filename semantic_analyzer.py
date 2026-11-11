@@ -312,11 +312,12 @@ def params_extract(param, table):
 
 
 def calculate_offset(dic, var_type):
+    # giving every type 8 bytes, because the code generator moves values with 64-bit instructions (movq)
     basic_sizes = {
-        "inteiro": 4,
+        "inteiro": 8,
         "real": 8,
-        "logico": 1,
-        "caracter": 1,
+        "logico": 8,
+        "caracter": 8,
     }[var_type]
     if not dic:
         return -basic_sizes

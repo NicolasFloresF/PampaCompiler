@@ -53,13 +53,15 @@ def generate_code(function_list, local_tables, global_table):
 
 
 def generate_func(node, table, global_table):
-    size = table.return_by_index(-1).offset
+    size = table.return_by_index(-1).offset * -1
+    # rounding the frame up to a multiple of 16, as the x86-64 ABI requires a 16-byte aligned stack
+    size = (size + 15) // 16 * 16
 
     print(f".global {node.value}")
     print(f"{node.value}:")
     print(f"    push %rbp")
     print(f"    mov %rsp, %rbp")
-    print(f"    sub ${size * -1}, %rsp\n")  # Reserve space for local variables
+    print(f"    sub ${size}, %rsp\n")  # Reserve space for local variables
 
     for child in node.children[-2].children:
         generate_assembly(child, table, global_table)
@@ -119,9 +121,9 @@ def assignment_handler(node, table):
         code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
     elif expr.nodetype == "boolean":
         if expr.value == "verdadeiro":
-            code += f"    movb $1, {table.lookup(var_name).offset}(%rbp)\n"
+            code += f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n"
         else:
-            code += f"    movb $0, {table.lookup(var_name).offset}(%rbp)\n"
+            code += f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n"
     elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
         code += expression_handler(expr, table)
         code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
@@ -150,9 +152,9 @@ def decls_handler(node, table, global_table):
                 elif expr.nodetype == "boolean":
                     print(f"    # {node.children[0].value} = {node.children[2].value}")
                     if expr.value == "verdadeiro":
-                        print(f"    movb $1, {table.lookup(var_name).offset}(%rbp)\n")
+                        print(f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n")
                     else:
-                        print(f"    movb $0, {table.lookup(var_name).offset}(%rbp)\n")
+                        print(f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n")
 
             if child.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
                 expr_code = expression_handler(child, table)

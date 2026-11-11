@@ -121,8 +121,8 @@ def t_STRING(t):
 
 def t_COMMENT(t):
     r"//.*"
-    t.type = "COMMENT"
-    return t
+    # discarding the comment: PLY drops tokens whose rule returns nothing
+    pass
 
 
 def t_newline(t):

@@ -67,7 +67,7 @@ def main():
 
     # itarate through the function list, build local tables and do semantic analysis
     for function in function_list:
-        local_tables.append(build_local_table(function))
+        local_tables.append(build_local_table(function, global_table))
         semantic_analysis(function, local_tables[-1], global_table)
 
     # print the local tables to the debug file

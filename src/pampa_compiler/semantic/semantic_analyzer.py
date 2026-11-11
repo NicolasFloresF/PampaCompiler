@@ -32,7 +32,7 @@ def semantic_analysis(node, table, global_table):
                 sys.exit(1)
 
             try:
-                expr_type = evaluate_expr_type(node.children[2], table)
+                expr_type = evaluate_expr_type(node.children[2], table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)
@@ -59,43 +59,26 @@ def semantic_analysis(node, table, global_table):
 
         elif node.nodetype == "return_expression":
             try:
-                expr_type = evaluate_expr_type(node.children[1], table)
+                expr_type = evaluate_expr_type(node.children[1], table, global_table)
             except SymbolNotFound as e:
                 print(f"[Line {node.children[0].lineno}]: {e}")
                 sys.exit(1)
 
-        elif node.nodetype == "call_function_expression":
-            func_name = node.children[0].value
-            try:
-                declared = global_table.lookup(func_name)
-            except SymbolNotFound as e:
-                print(f"[Line {node.children[0].lineno}]: {e}")
-                sys.exit(1)
-            params = next((child for child in node.children if child.nodetype == "expression_list"), None)
-            if params:
-                arg_list = args_extract(params.children, table)
-            else:
-                arg_list = []
-
-            # Check if the number of arguments matches
-            if len(arg_list) != len(declared.params):
-                raise ParamCountError(
-                    f"Param count error: Function '{func_name}' expected {len(declared.params)} arguments, but got {len(arg_list)} instead",
+            # checking the value against the function type; functions without a type ('vazio') are not checked
+            return_type = global_table.lookup(table.return_parent()).type
+            if return_type != "vazio" and expr_type != return_type:
+                raise TypeMismatchError(
+                    f"Type mismatch: Function '{table.return_parent()}' must return type '{return_type}', but get type '{expr_type}' instead",
                     node.lineno,
                 )
 
-            # check argument types
-            for i in range(len(arg_list)):
-                if arg_list[i] != declared.params[i]:
-                    raise TypeMismatchError(
-                        f"Type mismatch: Argument {i + 1} of function '{func_name}' expected type '{declared.params[i]}', but got '{arg_list[i]}' instead",
-                        node.lineno,
-                    )
+        elif node.nodetype == "call_function_expression":
+            check_call(node, table, global_table)
 
         # 'print' handler
         elif node.nodetype == "print":
             try:
-                evaluate_expr_type(node.children[2], table)
+                evaluate_expr_type(node.children[2], table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)
@@ -112,7 +95,7 @@ def semantic_analysis(node, table, global_table):
         elif node.nodetype in ["if", "while"]:
             condition = node.children[1]
             try:
-                condition_type = evaluate_expr_type(condition, table)
+                condition_type = evaluate_expr_type(condition, table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)
@@ -152,7 +135,7 @@ def semantic_analysis(node, table, global_table):
 
             # second expression (condition)
             try:
-                cond_type = evaluate_expr_type(cond_expr, table)
+                cond_type = evaluate_expr_type(cond_expr, table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)
@@ -185,6 +168,47 @@ def semantic_analysis(node, table, global_table):
                         sys.exit(1)
 
 
+def check_call(node, table, global_table):
+    """Checks that a called function exists and that the arguments match its parameters.
+
+    Args:
+        node (ASTnode): The call_function_expression node.
+        table (symbol_table): Local table of the calling function.
+        global_table (symbol_table): Table of the program functions.
+
+    Returns:
+        str: The return type of the called function ('vazio' when it returns nothing).
+    """
+    func_name = node.children[0].value
+    try:
+        declared = global_table.lookup(func_name)
+    except SymbolNotFound as e:
+        print(f"[Line {node.children[0].lineno}]: {e}")
+        sys.exit(1)
+    params = next((child for child in node.children if child.nodetype == "expression_list"), None)
+    if params:
+        arg_list = args_extract(params.children, table, global_table)
+    else:
+        arg_list = []
+
+    # Check if the number of arguments matches
+    if len(arg_list) != len(declared.params):
+        raise ParamCountError(
+            f"Param count error: Function '{func_name}' expected {len(declared.params)} arguments, but got {len(arg_list)} instead",
+            node.lineno,
+        )
+
+    # check argument types
+    for i in range(len(arg_list)):
+        if arg_list[i] != declared.params[i]:
+            raise TypeMismatchError(
+                f"Type mismatch: Argument {i + 1} of function '{func_name}' expected type '{declared.params[i]}', but got '{arg_list[i]}' instead",
+                node.lineno,
+            )
+
+    return declared.type
+
+
 def build_global_table(nodes, table=None):
     for node in nodes:
         if table is None:
@@ -196,9 +220,10 @@ def build_global_table(nodes, table=None):
                 param_types = param_type_extract(param) if param else []
 
                 try:
+                    # the type of a function symbol is its return type
                     table.define(
                         node.value,
-                        symbol(node.value, "function", node.lineno, params=param_types),
+                        symbol(node.value, node.children[0].value, node.lineno, params=param_types),
                     )
                 except RedeclarationError as e:
                     print(f"{e}")
@@ -207,7 +232,7 @@ def build_global_table(nodes, table=None):
     return table
 
 
-def build_local_table(node, table=None, var_type=None):
+def build_local_table(node, global_table, table=None, var_type=None):
     if table is None:
         table = symbol_table(parent=node.value)
 
@@ -221,26 +246,26 @@ def build_local_table(node, table=None, var_type=None):
             block = next((child for child in node.children if child.nodetype == "commands"), None)
             if block:
                 for cmd in block.children:
-                    build_local_table(cmd, table)
+                    build_local_table(cmd, global_table, table)
         elif node.nodetype in ["if", "while", "for"]:
             # registering declarations made inside blocks in the function table, as there is no block scope
             for block in node.children:
                 if block.nodetype == "commands":
                     for cmd in block.children:
-                        build_local_table(cmd, table)
+                        build_local_table(cmd, global_table, table)
         elif node.nodetype == "declaration":
             var_type = node.children[0].value
             decls = node.children[1]
             try:
-                declarations_extract(decls, table, var_type)
-            except TypeMismatchError as e:
+                declarations_extract(decls, table, var_type, global_table)
+            except CompilerError as e:
                 print(f"{e}")
                 sys.exit(1)
 
     return table
 
 
-def evaluate_expr_type(expr, table):
+def evaluate_expr_type(expr, table, global_table):
     if expr.nodetype == "number":
         if isinstance(expr.value, int):
             return "inteiro"
@@ -259,8 +284,8 @@ def evaluate_expr_type(expr, table):
         return sym.type
     elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
         try:
-            left_type = evaluate_expr_type(expr.children[0], table)
-            right_type = evaluate_expr_type(expr.children[2], table)
+            left_type = evaluate_expr_type(expr.children[0], table, global_table)
+            right_type = evaluate_expr_type(expr.children[2], table, global_table)
         except TypeMismatchError as e:
             print(f"{e}")
             sys.exit(1)
@@ -286,6 +311,14 @@ def evaluate_expr_type(expr, table):
                 )
         if expr.nodetype == "relational_expression":
             return "logico"
+    elif expr.nodetype == "call_function_expression":
+        return_type = check_call(expr, table, global_table)
+        if return_type == "vazio":
+            raise TypeMismatchError(
+                f"Type mismatch: Function '{expr.children[0].value}' returns no value, so it cannot be used in an expression",
+                expr.lineno,
+            )
+        return return_type
     else:
         raise TypeMismatchError(
             f"Type mismatch: {expr.nodetype} ({expr.value}) expected types 'inteiro', 'real', 'logico' or expression, but get type 'unknown' instead",
@@ -293,7 +326,7 @@ def evaluate_expr_type(expr, table):
         )
 
 
-def declarations_extract(decls, table, var_type):
+def declarations_extract(decls, table, var_type, global_table):
     if decls.nodetype == "declarations":
         for idx, child in enumerate(decls.children):
             if child.nodetype == "identifier":
@@ -308,8 +341,8 @@ def declarations_extract(decls, table, var_type):
             elif child.nodetype == "atribuition":
                 expr = decls.children[idx + 1]
                 try:
-                    expr_type = evaluate_expr_type(expr, table)
-                except TypeMismatchError as e:
+                    expr_type = evaluate_expr_type(expr, table, global_table)
+                except CompilerError as e:
                     print(f"{e}")
                     sys.exit(1)
                 if expr_type != var_type:
@@ -319,8 +352,8 @@ def declarations_extract(decls, table, var_type):
                     )
             elif child.nodetype == "declarations":
                 try:
-                    declarations_extract(child, table, var_type)
-                except TypeMismatchError as e:
+                    declarations_extract(child, table, var_type, global_table)
+                except CompilerError as e:
                     print(f"{e}")
                     sys.exit(1)
 
@@ -369,7 +402,7 @@ def param_type_extract(param, types=None):
     return types
 
 
-def args_extract(children, table, param_list=None):
+def args_extract(children, table, global_table, param_list=None):
     if param_list is None:
         param_list = []
 
@@ -382,15 +415,16 @@ def args_extract(children, table, param_list=None):
             "binary_expression",
             "logical_expression",
             "relational_expression",
+            "call_function_expression",
         ]:
             try:
-                id_type = evaluate_expr_type(child, table)
+                id_type = evaluate_expr_type(child, table, global_table)
             except SymbolNotFound as e:
                 print(f"[Line {child.lineno}]: {e}")
                 sys.exit(1)
 
             param_list.append(id_type)
         elif child.nodetype == "expression_list":
-            param_list = args_extract(child.children, table, param_list)
+            param_list = args_extract(child.children, table, global_table, param_list)
 
     return param_list

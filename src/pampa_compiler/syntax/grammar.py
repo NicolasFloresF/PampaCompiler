@@ -36,29 +36,47 @@ def p_function_list(p):
 
 
 def p_function(p):
-    """function : FUNCTION ID LPAREN RPAREN LBRACE commands RBRACE
-    | FUNCTION ID LPAREN param RPAREN LBRACE commands RBRACE"""
-    if len(p) == 8:
+    """function : FUNCTION return_type ID LPAREN RPAREN LBRACE commands RBRACE
+    | FUNCTION return_type ID LPAREN param RPAREN LBRACE commands RBRACE"""
+    if len(p) == 9:
         children = [
-            ASTnode("identifier", value=p[2], lineno=p.lineno(2)),
-            ASTnode("LPAREN", value=p[3], lineno=p.lineno(3)),
-            ASTnode("RPAREN", value=p[4], lineno=p.lineno(4)),
-            ASTnode("LBRACE", value=p[5], lineno=p.lineno(5)),
-            ASTnode("commands", p[6], lineno=p.lineno(6)),
-            ASTnode("RBRACE", value=p[7], lineno=p.lineno(7)),
-        ]
-        p[0] = ASTnode("function", children=children, value=p[2], lineno=p.lineno(2))
-    elif len(p) == 9:
-        children = [
-            ASTnode("identifier", value=p[2], lineno=p.lineno(2)),
-            ASTnode("LPAREN", value=p[3], lineno=p.lineno(3)),
-            p[4],
+            ASTnode("return_type", value=p[2], lineno=p.lineno(1)),
+            ASTnode("identifier", value=p[3], lineno=p.lineno(3)),
+            ASTnode("LPAREN", value=p[4], lineno=p.lineno(4)),
             ASTnode("RPAREN", value=p[5], lineno=p.lineno(5)),
             ASTnode("LBRACE", value=p[6], lineno=p.lineno(6)),
             ASTnode("commands", p[7], lineno=p.lineno(7)),
             ASTnode("RBRACE", value=p[8], lineno=p.lineno(8)),
         ]
-        p[0] = ASTnode("function", children=children, value=p[2], lineno=p.lineno(2))
+        p[0] = ASTnode("function", children=children, value=p[3], lineno=p.lineno(3))
+    elif len(p) == 10:
+        children = [
+            ASTnode("return_type", value=p[2], lineno=p.lineno(1)),
+            ASTnode("identifier", value=p[3], lineno=p.lineno(3)),
+            ASTnode("LPAREN", value=p[4], lineno=p.lineno(4)),
+            p[5],
+            ASTnode("RPAREN", value=p[6], lineno=p.lineno(6)),
+            ASTnode("LBRACE", value=p[7], lineno=p.lineno(7)),
+            ASTnode("commands", p[8], lineno=p.lineno(8)),
+            ASTnode("RBRACE", value=p[9], lineno=p.lineno(9)),
+        ]
+        p[0] = ASTnode("function", children=children, value=p[3], lineno=p.lineno(3))
+
+
+def p_return_type(p):
+    """return_type : type
+    | VOID
+    | empty"""
+    # functions declared without a type return nothing, like the 'vazio' ones
+    if p[1] is None:
+        p[0] = "vazio"
+    else:
+        p[0] = p[1]
+
+
+def p_empty(p):
+    """empty :"""
+    pass
 
 
 def p_param(p):

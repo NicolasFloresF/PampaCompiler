@@ -25,6 +25,8 @@ EXPECTED_EXIT_STATUS = {
     "gcd.por": 6,
     "logic.por": 2,
     "primes.por": 10,
+    "functions.por": 25,
+    "fibonacci.por": 55,
 }
 
 

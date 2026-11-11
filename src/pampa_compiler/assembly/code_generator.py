@@ -108,11 +108,7 @@ def generate_assembly(node, table, global_table):
         print(expr_code)
 
     elif node.nodetype == "call_function_expression":
-        # calls without arguments have no expression_list child
-        args = []
-        if node.children[-2].nodetype == "expression_list":
-            args = node.children[-2].children
-        code = call_expression_handler(args, table, node.children[0].value)
+        code = expression_handler(node, table)
         print(code)
 
     elif node.nodetype == "return_expression":
@@ -151,7 +147,7 @@ def assignment_handler(node, table):
             code += f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n"
         else:
             code += f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n"
-    elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
+    elif expr.nodetype in ["binary_expression", "logical_expression", "relational_expression", "call_function_expression"]:
         code += expression_handler(expr, table)
         code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
 
@@ -183,7 +179,12 @@ def decls_handler(node, table, global_table):
                     else:
                         print(f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n")
 
-            if child.nodetype in ["binary_expression", "logical_expression", "relational_expression"]:
+            if child.nodetype in [
+                "binary_expression",
+                "logical_expression",
+                "relational_expression",
+                "call_function_expression",
+            ]:
                 expr_code = expression_handler(child, table)
                 print(expr_code)
                 print(f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n")
@@ -273,12 +274,18 @@ def expression_handler(node, table):
 
         return code
 
+    elif node.nodetype == "call_function_expression":
+        # calls without arguments have no expression_list child
+        args = []
+        if node.children[-2].nodetype == "expression_list":
+            args = node.children[-2].children
+        return call_expression_handler(args, table, node.children[0].value)
+
     return f"    # Unhandled expression: {node.nodetype}\n"
 
 
 def call_expression_handler(args, table, func_name):
-    print(f"    # {func_name}({', '.join([str(arg.value) for arg in args])})")
-    code = ""
+    code = f"    # {func_name}({', '.join([str(arg.value) for arg in args])})\n"
 
     # Store generated expressions temporarily
     arg_codes = [expression_handler(arg, table) for arg in args]
@@ -292,10 +299,13 @@ def call_expression_handler(args, table, func_name):
         code += expr_code
         code += "    push %rax\n"
 
-    # Move register arguments
-    for i, expr_code in enumerate(reg_args):
+    # evaluating every register argument before loading any register, because evaluating one
+    # (a nested call or a division) overwrites registers that may already hold earlier arguments
+    for expr_code in reg_args:
         code += expr_code
-        code += f"    movq %rax, {arg_regs[i]}\n"
+        code += "    push %rax\n"
+    for i in reversed(range(len(reg_args))):
+        code += f"    pop {arg_regs[i]}\n"
 
     # Make the function call
     code += f"    call {func_name}\n"

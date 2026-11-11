@@ -19,10 +19,13 @@ RUNTIME = os.path.join(TESTS_DIR, "runtime.s")
 EXPECTED_EXIT_STATUS = {
     "arithmetic.por": 52,
     "precedence.por": 4,
+    "conditionals.por": 2,
     "while_sum.por": 55,
     "for_factorial.por": 120,
+    "nested_loops.por": 45,
     "gcd.por": 6,
     "logic.por": 2,
+    "primes.por": 10,
 }
 
 

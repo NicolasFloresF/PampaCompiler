@@ -40,7 +40,7 @@ labels = {}
 def new_label(value, base="label"):
     label_counter[base] += 1
     labels[value] = [base, f"{base}_{label_counter[base]}"]
-    return list(labels.values())[-1]
+    return labels[value]
 
 
 def generate_code(function_list, local_tables, global_table):

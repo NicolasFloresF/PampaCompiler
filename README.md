@@ -28,7 +28,7 @@ O código deste repositório **não é o mesmo que foi apresentado na disciplina
 - Comentários `//` e `/* */`
 - Testes automatizados sobre os programas da pasta `examples/`
 
-A versão apresentada continua disponível no histórico do git.
+A versão apresentada continua no histórico do git, marcada com a tag `apresentacao-2025` (commit `a534725`).
 
 ---
 

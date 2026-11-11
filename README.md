@@ -9,10 +9,26 @@
 
 ## 📘 Descrição
 
-**PampaCompiler** é um **compilador educacional** desenvolvido em Python, com suporte à linguagem **Portugol**.  
-Ele realiza **análise léxica** e **análise sintática** utilizando a biblioteca [`PLY`](https://www.dabeaz.com/ply/), processando código-fonte em Portugol e identificando estruturas válidas conforme uma gramática definida.
+**PampaCompiler** é um **compilador educacional** desenvolvido em Python, com suporte a um subconjunto da linguagem **Portugol** (no dialeto do Portugol Studio).  
+Ele realiza **análise léxica** e **análise sintática** utilizando a biblioteca [`PLY`](https://www.dabeaz.com/ply/), faz a **análise semântica** (declarações e tipos) e **gera código assembly x86-64** que, montado e ligado, vira um executável Linux independente.
 
 Esse projeto foi criado como parte da disciplina de **Compiladores**, no curso de Ciência da Computação da **Universidade Federal do Pampa (UNIPAMPA)**, com foco em ensino e experimentação de conceitos fundamentais de compiladores.
+
+---
+
+## 🔄 Sobre esta versão
+
+O código deste repositório **não é o mesmo que foi apresentado na disciplina**. Depois da entrega, o projeto foi refatorado e recebeu novas funcionalidades, entre elas:
+
+- Reorganização do código em um pacote, com uma pasta por fase do compilador
+- Migração do Poetry para o [`uv`](https://docs.astral.sh/uv/)
+- Correção de defeitos: assembly que não montava, falhas do compilador e erros de análise
+- Executáveis independentes, com `escreva` e `leia` feitos por chamadas de sistema do Linux
+- Funções com tipo de retorno, parâmetros e recursão
+- Comentários `//` e `/* */`
+- Testes automatizados sobre os programas da pasta `examples/`
+
+A versão apresentada continua disponível no histórico do git.
 
 ---
 
@@ -21,61 +37,94 @@ Esse projeto foi criado como parte da disciplina de **Compiladores**, no curso d
 Dado um código como:
 
 ```portugol
-inteiro x;
-x := 10;
+programa {
+  funcao inicio() {
+    inteiro x = 10
+    escreva("x = ", x, "\n")
+  }
+}
 ```
 
 O PampaCompiler:
 
-- Reconhece os tokens: `inteiro`, `x`, `:=`, `10`, `;`
-- Valida a estrutura gramatical
-- (Opcionalmente: prepara para futuras fases como interpretação ou geração de código)
+- Reconhece os tokens: `programa`, `funcao`, `inicio`, `inteiro`, `x`, `=`, `10`, `escreva`, ...
+- Valida a estrutura gramatical e monta a árvore sintática (AST)
+- Verifica declarações e tipos
+- Gera o código assembly, que vira um programa que imprime `x = 10`
 
 ---
 
 ## 📁 Estrutura do Projeto
 
-| Arquivo         | Função                                                                 |
-|-----------------|------------------------------------------------------------------------|
-| `__main__.py`   | Ponto de entrada do compilador.                                        |
-| `tokens.py`     | Definição dos tokens e expressões regulares.                           |
-| `grammar.py`    | Regras gramaticais para análise sintática.                             |
-| `ex1.por`       | Exemplo de código em Portugol.                                          |
-| `Readme.txt`    | Anotações e informações complementares.                                |
-| `.gitignore`    | Arquivos/diretórios ignorados pelo Git.                                |
-| `pyproject.toml`| Configuração do projeto com o Poetry.                                  |
+| Arquivo                                      | Função                                                        |
+|----------------------------------------------|---------------------------------------------------------------|
+| `src/pampa_compiler/__main__.py`             | Ponto de entrada do compilador.                               |
+| `src/pampa_compiler/lexical/`                | Definição dos tokens e expressões regulares.                  |
+| `src/pampa_compiler/syntax/`                 | Regras gramaticais para análise sintática.                    |
+| `src/pampa_compiler/semantic/`               | Tabelas de símbolos e verificação de declarações e tipos.     |
+| `src/pampa_compiler/assembly/`               | Geração do assembly e rotinas de execução (`runtime.s`).      |
+| `src/pampa_compiler/core/`                   | Árvore sintática, tabela de símbolos e erros do compilador.   |
+| `examples/`                                  | Exemplos de código em Portugol.                               |
+| `tests/`                                     | Testes que compilam e executam os exemplos.                   |
+| `.gitignore`                                 | Arquivos/diretórios ignorados pelo Git.                       |
+| `pyproject.toml`                             | Configuração do projeto com o uv.                             |
 
 ---
 
 ## ⚙️ Requisitos
 
-- Python **3.10+**
-- [`Poetry`](https://python-poetry.org/) instalado
-- Biblioteca `PLY` (instalada automaticamente via Poetry)
+- Linux x86-64
+- Python **3.12+**
+- [`uv`](https://docs.astral.sh/uv/) instalado
+- [Graphviz](https://graphviz.org/) (programa `dot`, usado para desenhar a AST)
+- GNU binutils (`as` e `ld`, para montar e ligar o assembly gerado)
+- Bibliotecas `PLY` e `graphviz` (instaladas automaticamente pelo uv)
 
 ### 📦 Instalação das dependências
 
 ```bash
-poetry install
+uv sync
 ```
 
 ### 🚪 Acesso ao ambiente virtual
 
+Os comandos abaixo usam `uv run`, que já executa dentro do ambiente virtual do projeto. Para ativá-lo manualmente:
+
 ```bash
-poetry shell
+source .venv/bin/activate
 ```
 
 ---
 
 ## ▶️ Como Executar
 
-Para rodar o compilador com um arquivo de exemplo:
+Para compilar um arquivo de exemplo:
 
 ```bash
-python __main__.py ex1.por
+uv run python -m pampa_compiler --file examples/hello_world.por
 ```
 
-O compilador irá processar `ex1.por`, reconhecer os tokens, aplicar a gramática definida e exibir os resultados no console.
+O compilador gera `examples/hello_world.asm` e desenha a AST em `ast.png`. Com a opção `--debug`, ele também grava os tokens, a AST e as tabelas de símbolos em `compile.out`.
+
+Para montar, ligar e executar o programa gerado:
+
+```bash
+as examples/hello_world.asm -o hello_world.o
+ld hello_world.o -o hello_world
+./hello_world
+```
+
+O valor retornado pela função `inicio` vira o código de saída do programa.
+
+---
+
+## 🧪 Testes
+
+```bash
+uv run python -m unittest discover tests
+```
+
+Os testes compilam, montam e executam cada programa de `examples/`, conferindo o código de saída e o que o programa imprime.
 
 ---
 

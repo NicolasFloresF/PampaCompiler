@@ -105,7 +105,7 @@ def generate_assembly(node, table, global_table):
 
 
 def assignment_handler(node, table):
-    print(f"    ; {node.children[0].value} = {node.children[2].value}")
+    print(f"    # {node.children[0].value} = {node.children[2].value}")
     code = ""
     var_name = node.children[0].value
     expr = node.children[2]
@@ -137,18 +137,18 @@ def decls_handler(node, table, global_table):
                 expr = node.children[2]
 
                 if expr.nodetype == "number":
-                    print(f"    ; {node.children[0].value} = {node.children[2].value}")
+                    print(f"    # {node.children[0].value} = {node.children[2].value}")
                     print(f"    movq ${expr.value}, {table.lookup(var_name).offset}(%rbp)\n")
 
                 elif expr.nodetype == "string":
-                    print(f"    ; {node.children[0].value} = {node.children[2].value}")
+                    print(f"    # {node.children[0].value} = {node.children[2].value}")
                     if expr.value not in labels:
                         new_label(expr.value, "string")
                     print(f"    lea {labels[expr.value][0]}(%rip), %rax")
                     print(f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n")
 
                 elif expr.nodetype == "boolean":
-                    print(f"    ; {node.children[0].value} = {node.children[2].value}")
+                    print(f"    # {node.children[0].value} = {node.children[2].value}")
                     if expr.value == "verdadeiro":
                         print(f"    movb $1, {table.lookup(var_name).offset}(%rbp)\n")
                     else:
@@ -164,7 +164,7 @@ def decls_handler(node, table, global_table):
 
 
 def print_handler(node, table):
-    print(f"    ; {node.children[0].value} ({node.children[2].value})")
+    print(f"    # {node.children[0].value} ({node.children[2].value})")
     code = ""
     if node.children[2].nodetype == "identifier":
         var_name = node.children[2].value
@@ -248,7 +248,7 @@ def expression_handler(node, table):
 
 
 def call_expression_handler(node, table, func_name):
-    print(f"    ; {func_name}({', '.join([arg.value for arg in node.children])})")
+    print(f"    # {func_name}({', '.join([arg.value for arg in node.children])})")
     code = ""
     arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
     args = node.children
@@ -281,7 +281,7 @@ def call_expression_handler(node, table, func_name):
 
 
 def return_expression_handler(node, table):
-    print(f"    ; return")
+    print(f"    # return")
     expr_code = expression_handler(node.children[1], table)
     code = expr_code
     code += "    leave\n"
@@ -290,7 +290,7 @@ def return_expression_handler(node, table):
 
 
 def increment_expression_handler(node, table):
-    print(f"    ; {node.children[0].value} {node.children[1].value}")
+    print(f"    # {node.children[0].value} {node.children[1].value}")
     code = ""
     var_name = node.children[0].value
     op = node.children[1].value

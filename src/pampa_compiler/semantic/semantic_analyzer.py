@@ -78,8 +78,9 @@ def semantic_analysis(node, table, global_table):
         # 'print' handler
         elif node.nodetype == "print":
             try:
-                # keeping the type on the node, as the code generator picks the print routine by it
-                node.expr_type = evaluate_expr_type(node.children[2], table, global_table)
+                # keeping the type on each argument, as the code generator picks the print routine by it
+                for arg in node.children[2].children:
+                    arg.expr_type = evaluate_expr_type(arg, table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)

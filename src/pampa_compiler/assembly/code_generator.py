@@ -214,15 +214,18 @@ def decls_handler(node, table, global_table):
 
 
 def print_handler(node, table):
-    print(f"    # {node.children[0].value} ({node.children[2].value})")
-    # choosing the runtime routine by the type the semantic analysis found for the printed expression
+    args = node.children[2].children
+    print(f"    # {node.children[0].value} ({', '.join([str(arg.value) for arg in args])})")
+    # choosing the runtime routine of each argument by the type the semantic analysis found for it
     routines = {"inteiro": "pampa_print_int", "logico": "pampa_print_bool", "caracter": "pampa_print_string"}
-    if node.expr_type not in routines:
-        return f"    # Unhandled print of type {node.expr_type}\n"
-
-    code = expression_handler(node.children[2], table)
-    code += "    movq %rax, %rdi\n"
-    code += f"    call {routines[node.expr_type]}\n"
+    code = ""
+    for arg in args:
+        if arg.expr_type not in routines:
+            code += f"    # Unhandled print of type {arg.expr_type}\n"
+            continue
+        code += expression_handler(arg, table)
+        code += "    movq %rax, %rdi\n"
+        code += f"    call {routines[arg.expr_type]}\n"
 
     return code
 

@@ -309,11 +309,11 @@ def p_read_statement(p):
 
 
 def p_write_statement(p):
-    """write_statement : PRINT LPAREN expression RPAREN"""
+    """write_statement : PRINT LPAREN expression_list RPAREN"""
     children = [
         ASTnode("PRINT", value=p[1], lineno=p.lineno(1)),
         ASTnode("LPAREN", value=p[2], lineno=p.lineno(2)),
-        p[3],
+        ASTnode("expression_list", p[3], lineno=p.lineno(3)),
         ASTnode("RPAREN", value=p[4], lineno=p.lineno(4)),
     ]
     p[0] = ASTnode("print", children=children, lineno=p.lineno(1))

@@ -4,11 +4,7 @@ programa {
     inteiro i
     escreva("Ola, mundo!\n")
     para (i = 1; i <= 3; i++) {
-      escreva("3 x ")
-      escreva(i)
-      escreva(" = ")
-      escreva(3 * i)
-      escreva("\n")
+      escreva("3 x ", i, " = ", 3 * i, "\n")
     }
   }
 }

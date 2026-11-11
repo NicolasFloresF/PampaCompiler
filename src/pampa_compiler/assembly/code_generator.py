@@ -1,4 +1,9 @@
+import os
+
 from pampa_compiler.core.symbol_table import *
+
+# entry point and routines behind escreva, appended to every program
+RUNTIME_PATH = os.path.join(os.path.dirname(__file__), "runtime.s")
 
 # Registers and their usage:
 
@@ -53,6 +58,9 @@ def generate_code(function_list, local_tables, global_table):
 
     # Generate read-only data section
     generate_rodata()
+
+    with open(RUNTIME_PATH) as runtime_file:
+        print(runtime_file.read())
 
 
 def generate_func(node, table, global_table):
@@ -195,16 +203,14 @@ def decls_handler(node, table, global_table):
 
 def print_handler(node, table):
     print(f"    # {node.children[0].value} ({node.children[2].value})")
-    code = ""
-    if node.children[2].nodetype == "identifier":
-        var_name = node.children[2].value
-        code += f"    movq {table.lookup(var_name).offset}(%rbp), %rdi\n"
-        code += "    call syscall_print\n"
-    elif node.children[2].nodetype == "string":
-        if node.children[2].value not in labels:
-            new_label(node.children[2].value, "string")
-        code += f"    lea {labels[node.children[2].value][1]}(%rip), %rdi\n"
-        code += "    call syscall_print\n"
+    # choosing the runtime routine by the type the semantic analysis found for the printed expression
+    routines = {"inteiro": "pampa_print_int", "logico": "pampa_print_bool", "caracter": "pampa_print_string"}
+    if node.expr_type not in routines:
+        return f"    # Unhandled print of type {node.expr_type}\n"
+
+    code = expression_handler(node.children[2], table)
+    code += "    movq %rax, %rdi\n"
+    code += f"    call {routines[node.expr_type]}\n"
 
     return code
 
@@ -216,6 +222,17 @@ def expression_handler(node, table):
     elif node.nodetype == "identifier":
         offset = table.lookup(node.value).offset
         return f"    movq {offset}(%rbp), %rax\n"
+
+    elif node.nodetype == "string":
+        if node.value not in labels:
+            new_label(node.value, "string")
+        return f"    lea {labels[node.value][1]}(%rip), %rax\n"
+
+    elif node.nodetype == "boolean":
+        # representing verdadeiro as 1 and falso as 0
+        if node.value == "verdadeiro":
+            return "    movq $1, %rax\n"
+        return "    movq $0, %rax\n"
 
     elif node.nodetype == "binary_expression":
         left_code = expression_handler(node.children[0], table)

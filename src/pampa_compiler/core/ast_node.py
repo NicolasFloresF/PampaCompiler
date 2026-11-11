@@ -9,6 +9,8 @@ class ASTnode:
         self.lineno = lineno
         self.value = value
         self.childnum = len(self.children)
+        # type of the expression, filled by the semantic analysis on the nodes whose code depends on it
+        self.expr_type = None
 
     def __repr__(self, level=0):
         indent = "  " * level

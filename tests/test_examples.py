@@ -1,4 +1,4 @@
-"""Compiles every program in examples/, runs it and checks its exit status.
+"""Compiles every program in examples/, runs it and checks its exit status and output.
 
 Run from the repository root with: uv run python -m unittest discover tests
 """
@@ -12,7 +12,6 @@ import unittest
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(TESTS_DIR)
 EXAMPLES_DIR = os.path.join(REPO_DIR, "examples")
-RUNTIME = os.path.join(TESTS_DIR, "runtime.s")
 
 # Expected exit status of each example: the value its inicio function returns.
 EXPECTED_EXIT_STATUS = {
@@ -27,20 +26,27 @@ EXPECTED_EXIT_STATUS = {
     "primes.por": 10,
     "functions.por": 25,
     "fibonacci.por": 55,
+    "hello_world.por": 0,
+}
+
+# Expected standard output of the examples that print something; the others print nothing.
+EXPECTED_OUTPUT = {
+    "hello_world.por": "Ola, mundo!\n3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n",
 }
 
 
-def run_command(command: list[str], work_dir: str) -> subprocess.CompletedProcess:
+def run_command(command: list[str], work_dir: str, stdin: str = "") -> subprocess.CompletedProcess:
     """Runs a command inside work_dir.
 
     Args:
         command (list[str]): Program and arguments.
         work_dir (str): Directory the command runs in.
+        stdin (str): Text sent to the standard input of the command.
 
     Returns:
         subprocess.CompletedProcess: Exit status and captured text output.
     """
-    return subprocess.run(command, cwd=work_dir, capture_output=True, text=True, timeout=10, check=False)
+    return subprocess.run(command, cwd=work_dir, input=stdin, capture_output=True, text=True, timeout=10, check=False)
 
 
 def compile_program(source: str, work_dir: str) -> subprocess.CompletedProcess:
@@ -60,7 +66,7 @@ def compile_program(source: str, work_dir: str) -> subprocess.CompletedProcess:
 
 
 def assemble_and_link(work_dir: str) -> subprocess.CompletedProcess:
-    """Assembles work_dir/program.asm with the runtime and links them into work_dir/program.
+    """Assembles work_dir/program.asm and links it into the standalone executable work_dir/program.
 
     Args:
         work_dir (str): Directory holding program.asm.
@@ -70,8 +76,7 @@ def assemble_and_link(work_dir: str) -> subprocess.CompletedProcess:
     """
     steps = [
         ["as", "program.asm", "-o", "program.o"],
-        ["as", RUNTIME, "-o", "runtime.o"],
-        ["ld", "program.o", "runtime.o", "-o", "program"],
+        ["ld", "program.o", "-o", "program"],
     ]
     for step in steps:
         result = run_command(step, work_dir)
@@ -80,15 +85,16 @@ def assemble_and_link(work_dir: str) -> subprocess.CompletedProcess:
     return result
 
 
-def build_and_run(test_case: unittest.TestCase, source: str) -> int:
+def build_and_run(test_case: unittest.TestCase, source: str, stdin: str = "") -> subprocess.CompletedProcess:
     """Compiles, links and runs source, failing test_case at the first step that fails.
 
     Args:
         test_case (unittest.TestCase): Test that receives the failure.
         source (str): Portugol source code.
+        stdin (str): Text the program reads with leia.
 
     Returns:
-        int: Exit status of the program, that is, the value returned by inicio.
+        subprocess.CompletedProcess: Exit status (the value returned by inicio) and output of the program.
     """
     with tempfile.TemporaryDirectory() as work_dir:
         compiled = compile_program(source, work_dir)
@@ -97,7 +103,7 @@ def build_and_run(test_case: unittest.TestCase, source: str) -> int:
         linked = assemble_and_link(work_dir)
         test_case.assertEqual(linked.returncode, 0, f"assembler or linker failed:\n{linked.stderr}")
 
-        return run_command(["./program"], work_dir).returncode
+        return run_command(["./program"], work_dir, stdin)
 
 
 class ExamplesTest(unittest.TestCase):
@@ -105,12 +111,14 @@ class ExamplesTest(unittest.TestCase):
         example_names = sorted(name for name in os.listdir(EXAMPLES_DIR) if name.endswith(".por"))
         self.assertEqual(example_names, sorted(EXPECTED_EXIT_STATUS))
 
-    def test_examples_return_expected_status(self):
+    def test_examples_return_expected_status_and_output(self):
         for example_name, expected_status in EXPECTED_EXIT_STATUS.items():
             with self.subTest(example=example_name):
                 with open(os.path.join(EXAMPLES_DIR, example_name)) as example_file:
                     source = example_file.read()
-                self.assertEqual(build_and_run(self, source), expected_status)
+                executed = build_and_run(self, source)
+                self.assertEqual(executed.returncode, expected_status)
+                self.assertEqual(executed.stdout, EXPECTED_OUTPUT.get(example_name, ""))
 
 
 if __name__ == "__main__":

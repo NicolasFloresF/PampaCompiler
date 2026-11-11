@@ -78,7 +78,8 @@ def semantic_analysis(node, table, global_table):
         # 'print' handler
         elif node.nodetype == "print":
             try:
-                evaluate_expr_type(node.children[2], table, global_table)
+                # keeping the type on the node, as the code generator picks the print routine by it
+                node.expr_type = evaluate_expr_type(node.children[2], table, global_table)
             except TypeMismatchError as e:
                 print(f"{e}")
                 sys.exit(1)
@@ -228,6 +229,14 @@ def build_global_table(nodes, table=None):
                 except RedeclarationError as e:
                     print(f"{e}")
                     sys.exit(1)
+
+    # checking the entry point: every program starts at 'inicio', which takes no parameters
+    if "inicio" not in table.return_table():
+        print("Missing entry point: the program has no 'inicio' function")
+        sys.exit(1)
+    if table.lookup("inicio").params:
+        print(f"[Line {table.lookup('inicio').lineno}]: Invalid entry point: 'inicio' takes no parameters")
+        sys.exit(1)
 
     return table
 

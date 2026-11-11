@@ -256,7 +256,7 @@ def expression_handler(node, table):
 
 
 def call_expression_handler(args, table, func_name):
-    print(f"    # {func_name}({', '.join([arg.value for arg in args])})")
+    print(f"    # {func_name}({', '.join([str(arg.value) for arg in args])})")
     code = ""
     arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
 

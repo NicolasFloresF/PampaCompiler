@@ -95,7 +95,7 @@ def build_and_run(test_case: unittest.TestCase, source: str, stdin: str = "") ->
         stdin (str): Text the program reads with leia.
 
     Returns:
-        subprocess.CompletedProcess: Exit status (the value returned by inicio) and output of the program.
+        subprocess.CompletedProcess: Exit status and output of the program.
     """
     with tempfile.TemporaryDirectory() as work_dir:
         compiled = compile_program(source, work_dir)

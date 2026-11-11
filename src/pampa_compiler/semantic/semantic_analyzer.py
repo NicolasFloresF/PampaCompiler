@@ -64,9 +64,14 @@ def semantic_analysis(node, table, global_table):
                 print(f"[Line {node.children[0].lineno}]: {e}")
                 sys.exit(1)
 
-            # checking the value against the function type; functions without a type ('vazio') are not checked
+            # checking the value against the function type; functions without a type ('vazio') return nothing
             return_type = global_table.lookup(table.return_parent()).type
-            if return_type != "vazio" and expr_type != return_type:
+            if return_type == "vazio":
+                raise TypeMismatchError(
+                    f"Type mismatch: Function '{table.return_parent()}' has no return type, so it cannot return a value",
+                    node.lineno,
+                )
+            if expr_type != return_type:
                 raise TypeMismatchError(
                     f"Type mismatch: Function '{table.return_parent()}' must return type '{return_type}', but get type '{expr_type}' instead",
                     node.lineno,

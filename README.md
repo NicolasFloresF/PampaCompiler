@@ -114,8 +114,6 @@ ld hello_world.o -o hello_world
 ./hello_world
 ```
 
-O valor retornado pela função `inicio` vira o código de saída do programa.
-
 ---
 
 ## 🧪 Testes

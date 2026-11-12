@@ -3,6 +3,7 @@ import os
 from pampa_compiler.core.symbol_table import *
 from pampa_compiler.assembly.labels import *
 from pampa_compiler.assembly.expressions import *
+from pampa_compiler.assembly.variables import *
 
 
 # entry point and routines behind escreva and leia, appended to every program
@@ -57,12 +58,11 @@ def generate_func(node, table, global_table):
     # copying each parameter into its slot: the first six arrive in registers, the others on the caller's stack
     params = global_table.lookup(node.value).params
     for index in range(len(params)):
-        offset = table.return_by_index(index).offset
         if index < len(arg_regs):
-            print(f"    movq {arg_regs[index]}, {offset}(%rbp)")
+            print(f"    movq {arg_regs[index]}, %rax")
         else:
             print(f"    movq {16 + (index - len(arg_regs)) * 8}(%rbp), %rax")
-            print(f"    movq %rax, {offset}(%rbp)")
+        print(store_variable(table.return_by_index(index)), end="")
     if params:
         print()
 
@@ -120,34 +120,9 @@ def generate_assembly(node, table, global_table):
 
 def assignment_handler(node, table):
     print(f"    # {node.children[0].value} = {node.children[2].value}")
-    code = ""
     var_name = node.children[0].value
-    expr = node.children[2]
-
-    if expr.nodetype == "number":
-        code += store_number(expr.value, table.lookup(var_name).offset)
-    elif expr.nodetype == "string":
-        if expr.value not in labels:
-            new_label(expr.value, "string")
-        code += f"    lea {labels[expr.value][1]}(%rip), %rax\n"
-        code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
-    elif expr.nodetype == "boolean":
-        if expr.value == "verdadeiro":
-            code += f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n"
-        else:
-            code += f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n"
-    elif expr.nodetype in [
-        "identifier",
-        "binary_expression",
-        "logical_expression",
-        "relational_expression",
-        "not_expression",
-        "unary_expression",
-        "call_function_expression",
-    ]:
-        code += expression_handler(expr, table)
-        code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
-
+    code = expression_handler(node.children[2], table)
+    code += store_variable(table.lookup(var_name))
     return code
 
 
@@ -186,7 +161,7 @@ def read_handler(node, table):
         declared = table.lookup(variable.value)
         code += f"    # leia ({variable.value})\n"
         code += f"    call {routines[declared.type]}\n"
-        code += f"    movq %rax, {declared.offset}(%rbp)\n"
+        code += store_variable(declared)
     return code
 
 
@@ -205,14 +180,13 @@ def increment_expression_handler(node, table):
     var_name = node.children[0].value
     op = node.children[1].value
 
+    variable = table.lookup(var_name)
+    code += load_variable(variable)
     if op == "++":
-        code += f"    movq {table.lookup(var_name).offset}(%rbp), %rax\n"
-        code += f"    addq $1, %rax\n"
-        code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
+        code += "    addq $1, %rax\n"
     elif op == "--":
-        code += f"    movq {table.lookup(var_name).offset}(%rbp), %rax\n"
-        code += f"    subq $1, %rax\n"
-        code += f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n"
+        code += "    subq $1, %rax\n"
+    code += store_variable(variable)
 
     return code
 

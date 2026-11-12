@@ -6,8 +6,20 @@ from pampa_compiler.core.symbol_table import *
 
 
 def evaluate_expr_type(expr, table, global_table):
+    """Returns the type of an expression and keeps it on the node, where the code generator reads it."""
+    expr.expr_type = find_expr_type(expr, table, global_table)
+    return expr.expr_type
+
+
+def find_expr_type(expr, table, global_table):
     if expr.nodetype == "number":
         if isinstance(expr.value, int):
+            # refusing what does not fit the 32 bits of 'inteiro', as Portugol Studio does
+            if not -(2**31) <= expr.value < 2**31:
+                raise TypeMismatchError(
+                    f"Integer out of range: {expr.value} does not fit 'inteiro' (-2147483648 to 2147483647)",
+                    expr.lineno,
+                )
             return "inteiro"
         elif isinstance(expr.value, float):
             return "real"

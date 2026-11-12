@@ -1,18 +1,11 @@
 """Generates the assembly of expressions and function calls, leaving each value in %rax."""
 
 from pampa_compiler.assembly.labels import *
+from pampa_compiler.assembly.variables import *
 
 
 # registers that carry the first six arguments of a call, in order (System V calling convention)
 arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
-
-
-def store_number(value, offset):
-    # storing directly only 32-bit signed numbers: movq to memory takes no larger immediate,
-    # so the others go through %rax
-    if -(2**31) <= value < 2**31:
-        return f"    movq ${value}, {offset}(%rbp)\n"
-    return f"    movabsq ${value}, %rax\n    movq %rax, {offset}(%rbp)\n"
 
 
 def expression_handler(node, table):
@@ -20,8 +13,7 @@ def expression_handler(node, table):
         return f"    movq ${node.value}, %rax\n"
 
     elif node.nodetype == "identifier":
-        offset = table.lookup(node.value).offset
-        return f"    movq {offset}(%rbp), %rax\n"
+        return load_variable(table.lookup(node.value))
 
     elif node.nodetype == "string":
         if node.value not in labels:
@@ -52,6 +44,10 @@ def expression_handler(node, table):
             code += "    idivq %rbx\n"
         else:
             code += f"    {asm_op} %rbx, %rax\n"
+
+        # wrapping an 'inteiro' result to 32 bits, as the int of Java does, and sign-extending it back
+        if node.expr_type == "inteiro":
+            code += "    cltq\n"
 
         return code
 
@@ -94,6 +90,8 @@ def expression_handler(node, table):
     elif node.nodetype == "unary_expression":
         code = expression_handler(node.children[0], table)
         code += "    negq %rax\n"
+        if node.expr_type == "inteiro":
+            code += "    cltq\n"
         return code
 
     elif node.nodetype == "not_expression":

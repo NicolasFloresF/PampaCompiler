@@ -4,6 +4,7 @@ import sys
 
 from pampa_compiler.core.symbol_table import *
 from pampa_compiler.core.ast_node import ASTnode
+from pampa_compiler.core.type_sizes import TYPE_SIZES
 from pampa_compiler.semantic.expression_types import *
 
 
@@ -148,18 +149,11 @@ def params_extract(param, table, scope):
 
 
 def calculate_offset(dic, var_type):
-    # giving every type 8 bytes, because the code generator moves values with 64-bit instructions (movq)
-    basic_sizes = {
-        "inteiro": 8,
-        "real": 8,
-        "logico": 8,
-        "caracter": 8,
-    }[var_type]
-    if not dic:
-        return -basic_sizes
-    else:
-        last_offset = list(dic.values())[-1].offset
-        return last_offset - basic_sizes
+    size = TYPE_SIZES[var_type]
+    last_offset = list(dic.values())[-1].offset if dic else 0
+    offset = last_offset - size
+    # aligning the slot to its own size, rounding down because the slots grow downwards from %rbp
+    return offset - offset % size
 
 
 def param_type_extract(param, types=None):

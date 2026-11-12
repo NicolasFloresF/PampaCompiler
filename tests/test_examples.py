@@ -28,6 +28,7 @@ EXPECTED_OUTPUT = {
     "fibonacci.por": "0 1 1 2 3 5 8 13 21 34 55 \n",
     "hello_world.por": "Ola, mundo!\n3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n",
     "read_sum.por": "How many numbers? Number 1: Number 2: Number 3: Sum = 13\n",
+    "types.por": "Ana (A), 20 years, 1.75 m, student: verdadeiro\nAverage of 7 and 8.5: 7.75\n",
 }
 
 # Standard input of the examples that read with leia; the others read nothing.

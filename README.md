@@ -25,6 +25,8 @@ O código deste repositório **não é o mesmo que foi apresentado na disciplina
 - Correção de defeitos: assembly que não montava, falhas do compilador e erros de análise
 - Executáveis independentes, com `escreva` e `leia` feitos por chamadas de sistema do Linux
 - Funções com tipo de retorno, parâmetros e recursão
+- Tipos `cadeia` (com concatenação por `+`), `caracter` (`'a'`) e `real`, além de `inteiro` (32 bits) e `logico`
+- Escopo de bloco: cada variável vale do ponto da declaração até o fim do seu bloco
 - Comentários `//` e `/* */`
 - Operadores lógicos `e`, `ou` e `nao`, com a precedência do Portugol Studio
 - Testes automatizados sobre os programas da pasta `examples/`

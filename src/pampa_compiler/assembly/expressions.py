@@ -69,6 +69,9 @@ def expression_handler(node, table):
         code += "    pop %rax\n"  # left operand → %rax
 
         if op == "/":
+            # stopping with a message on a zero divisor, which would otherwise kill the program with SIGFPE
+            code += "    testq %rbx, %rbx\n"
+            code += "    jz pampa_division_by_zero\n"
             code += "    cqo\n"  # sign-extend %rax into %rdx:%rax
             code += "    idivq %rbx\n"
         else:

@@ -19,6 +19,18 @@ pampa_write:
     syscall
     ret
 
+# Stops the program with a message and exit status 1; the code of an 'inteiro' division jumps
+# here when the divisor is zero.
+pampa_division_by_zero:
+    mov $1, %rax                    # write
+    mov $2, %rdi                    # standard error
+    lea pampa_zero_divisor(%rip), %rsi
+    mov $pampa_zero_divisor_length, %rdx
+    syscall
+    mov $60, %rax                   # exit
+    mov $1, %rdi
+    syscall
+
 # Writes the zero-terminated string at %rdi.
 pampa_print_string:
     call pampa_text_length
@@ -556,6 +568,9 @@ pampa_invalid_bool:
 pampa_invalid_char:
     .ascii "Runtime error: leia expected a caracter\n"
     .set pampa_invalid_char_length, . - pampa_invalid_char
+pampa_zero_divisor:
+    .ascii "Runtime error: division by zero\n"
+    .set pampa_zero_divisor_length, . - pampa_zero_divisor
 pampa_no_memory:
     .ascii "Runtime error: out of memory\n"
     .set pampa_no_memory_length, . - pampa_no_memory

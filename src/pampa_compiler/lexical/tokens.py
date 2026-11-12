@@ -1,3 +1,5 @@
+import sys
+
 import ply.lex as lex
 
 # lexic analysis for the language portugol
@@ -131,8 +133,9 @@ def t_newline(t):
 
 
 def t_error(t):
-    print(f"Illegal character {t.value[0]}")
-    t.lexer.skip(1)
+    print(f"[Line {t.lexer.lineno}]: Illegal character {t.value[0]}")
+    # stopping at the first illegal character: skipping it would compile a different program
+    sys.exit(1)
 
 
 def t_ID(t):

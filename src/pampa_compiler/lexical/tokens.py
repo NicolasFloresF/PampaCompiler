@@ -24,7 +24,6 @@ reserved = {
     "vazio": "VOID",
     "programa": "PROGRAM",
     "retorne": "RETURN",
-    # logical operators are words, as in Portugol Studio
     "e": "AND",
     "ou": "OR",
     "nao": "NOT",

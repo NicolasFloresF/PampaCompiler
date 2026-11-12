@@ -211,6 +211,11 @@ def p_expression_boolean(p):
     p[0] = ASTnode("boolean", value=p[1], lineno=p.lineno(1))
 
 
+def p_expression_character(p):
+    """expression : CHAR_LITERAL"""
+    p[0] = ASTnode("character", value=p[1], lineno=p.lineno(1))
+
+
 def p_expression_string(p):
     """expression : STRING"""
     p[0] = ASTnode("string", value=p[1], lineno=p.lineno(1))
@@ -277,6 +282,7 @@ def p_type(p):
     """type : INTEGER
     | FLOAT
     | STRING_TYPE
+    | CHAR
     | BOOLEAN"""
     p[0] = p[1]
 

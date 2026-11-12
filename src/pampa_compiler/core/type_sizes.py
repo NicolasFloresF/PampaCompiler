@@ -6,5 +6,6 @@ TYPE_SIZES = {
     "inteiro": 4,
     "real": 8,
     "logico": 1,
+    "caracter": 1,
     "cadeia": 8,
 }

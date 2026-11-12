@@ -51,6 +51,7 @@ operations = [
 
 literal = [
     "STRING",
+    "CHAR_LITERAL",
     "COMMENT",
 ]
 
@@ -118,6 +119,23 @@ def t_STRING(t):
     # ending at the first quote that is not escaped, so several strings can share a line
     r'"([^"\\\n]|\\.)*"'
     t.type = "STRING"
+    return t
+
+
+# character each escape sequence stands for, as Portugol Studio accepts them
+CHAR_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "b": "\b", "f": "\f", "'": "'", '"': '"', "\\": "\\"}
+
+
+def t_CHAR_LITERAL(t):
+    r"'([^'\\\n]|\\.)'"
+    text = t.value[1:-1]
+    if text.startswith("\\"):
+        if text[1] not in CHAR_ESCAPES:
+            print(f"[Line {t.lexer.lineno}]: Invalid escape sequence {text} in a caracter")
+            sys.exit(1)
+        text = CHAR_ESCAPES[text[1]]
+    # keeping the character code, which prints safely in the assembly comments even for '\\n'
+    t.value = ord(text)
     return t
 
 

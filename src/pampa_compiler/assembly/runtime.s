@@ -97,6 +97,68 @@ pampa_bool_to_text:
 pampa_bool_to_text_end:
     ret
 
+# Writes the character in the low byte of %rdi.
+pampa_print_char:
+    push %rbp
+    mov %rsp, %rbp
+    sub $16, %rsp
+    mov %dil, -1(%rbp)
+    lea -1(%rbp), %rsi
+    mov $1, %rdx
+    call pampa_write
+    leave
+    ret
+
+# Returns in %rax a new zero-terminated string with the character in the low byte of %rdi.
+pampa_char_to_text:
+    push %rdi
+    mov $2, %rdi
+    call pampa_alloc
+    pop %rdi
+    mov %dil, (%rax)
+    movb $0, 1(%rax)
+    ret
+
+# Reads one line from the standard input and returns its first character in %rax, ignoring
+# '\r'. An empty line, or the end of the input, stops the program with a message and exit status 1.
+pampa_read_char:
+    push %rbp
+    mov %rsp, %rbp
+    sub $16, %rsp
+    movq $-1, -16(%rbp)             # first character, -1 until one is read
+pampa_read_char_next:
+    mov $0, %rax                    # read
+    mov $0, %rdi                    # standard input
+    lea -1(%rbp), %rsi
+    mov $1, %rdx
+    syscall
+    cmp $1, %rax
+    jne pampa_read_char_check       # end of the input or error
+    movzbq -1(%rbp), %rax
+    cmp $10, %rax                   # '\n'
+    je pampa_read_char_check
+    cmp $13, %rax                   # '\r'
+    je pampa_read_char_next
+    cmpq $-1, -16(%rbp)
+    jne pampa_read_char_next        # keeping only the first character, reading the rest of the line
+    mov %rax, -16(%rbp)
+    jmp pampa_read_char_next
+pampa_read_char_check:
+    mov -16(%rbp), %rax
+    cmp $-1, %rax
+    je pampa_read_char_invalid
+    leave
+    ret
+pampa_read_char_invalid:
+    mov $1, %rax                    # write
+    mov $2, %rdi                    # standard error
+    lea pampa_invalid_char(%rip), %rsi
+    mov $pampa_invalid_char_length, %rdx
+    syscall
+    mov $60, %rax                   # exit
+    mov $1, %rdi
+    syscall
+
 # Writes "verdadeiro" when %rdi is not zero, "falso" otherwise.
 pampa_print_bool:
     call pampa_bool_to_text
@@ -349,6 +411,9 @@ pampa_false:
 pampa_invalid_bool:
     .ascii "Runtime error: leia expected verdadeiro or falso\n"
     .set pampa_invalid_bool_length, . - pampa_invalid_bool
+pampa_invalid_char:
+    .ascii "Runtime error: leia expected a caracter\n"
+    .set pampa_invalid_char_length, . - pampa_invalid_char
 pampa_no_memory:
     .ascii "Runtime error: out of memory\n"
     .set pampa_no_memory_length, . - pampa_no_memory

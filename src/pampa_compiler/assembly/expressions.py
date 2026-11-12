@@ -20,6 +20,9 @@ def expression_handler(node, table):
             new_label(node.value, "string")
         return f"    lea {labels[node.value][1]}(%rip), %rax\n"
 
+    elif node.nodetype == "character":
+        return f"    movq ${node.value}, %rax\n"
+
     elif node.nodetype == "boolean":
         # representing verdadeiro as 1 and falso as 0
         if node.value == "verdadeiro":
@@ -138,7 +141,7 @@ def concat_handler(node, table):
 
 def to_text(value_type):
     """Returns the assembly that turns the value of value_type in %rax into the address of its text."""
-    routines = {"inteiro": "pampa_int_to_text", "logico": "pampa_bool_to_text"}
+    routines = {"inteiro": "pampa_int_to_text", "logico": "pampa_bool_to_text", "caracter": "pampa_char_to_text"}
     if value_type not in routines:
         return ""
     return f"    movq %rax, %rdi\n    call {routines[value_type]}\n"

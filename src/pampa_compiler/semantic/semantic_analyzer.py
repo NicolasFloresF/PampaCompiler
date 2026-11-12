@@ -149,9 +149,9 @@ def check_read(node, table):
             print(f"[Line {variable.lineno}]: {e}")
             sys.exit(1)
 
-        if declared.type not in ["inteiro", "logico", "cadeia"]:
+        if declared.type not in ["inteiro", "logico", "cadeia", "caracter"]:
             raise TypeMismatchError(
-                f"Type mismatch: leia only reads 'inteiro', 'logico' and 'cadeia' values, but Symbol [{declared.name}] has type '{declared.type}'",
+                f"Type mismatch: leia only reads 'inteiro', 'logico', 'cadeia' and 'caracter' values, but Symbol [{declared.name}] has type '{declared.type}'",
                 node.lineno,
             )
 

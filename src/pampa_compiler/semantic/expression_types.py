@@ -25,6 +25,8 @@ def find_expr_type(expr, table, global_table):
             return "real"
     elif expr.nodetype == "string":
         return "cadeia"
+    elif expr.nodetype == "character":
+        return "caracter"
     elif expr.nodetype == "boolean":
         return "logico"
     elif expr.nodetype == "identifier":
@@ -44,8 +46,9 @@ def find_expr_type(expr, table, global_table):
 
         numbers = ["inteiro", "real"]
         if expr.nodetype == "binary_expression":
-            # joining text: a 'cadeia' on either side of '+' turns the other value into text
-            if expr.value == "+" and "cadeia" in [left_type, right_type]:
+            # joining text: a 'cadeia' on either side of '+' turns the other value into text,
+            # and two 'caracter' make a 'cadeia', as in Portugol Studio
+            if expr.value == "+" and ("cadeia" in [left_type, right_type] or left_type == right_type == "caracter"):
                 return "cadeia"
             if left_type in numbers and right_type in numbers:
                 if left_type == right_type:
@@ -66,9 +69,11 @@ def find_expr_type(expr, table, global_table):
                     expr.lineno,
                 )
         if expr.nodetype == "relational_expression":
-            # comparing numbers with any operator, and values of the same type for equality only
+            # comparing numbers and 'caracter' values with any operator, other values of the same type
+            # for equality only
             both_numbers = left_type in numbers and right_type in numbers
-            if both_numbers or (expr.value in ["==", "!="] and left_type == right_type):
+            both_characters = left_type == right_type == "caracter"
+            if both_numbers or both_characters or (expr.value in ["==", "!="] and left_type == right_type):
                 return "logico"
             raise TypeMismatchError(
                 f"Type mismatch: {expr.nodetype} ({expr.value}) cannot compare type '{left_type}' with type '{right_type}'",
@@ -155,6 +160,7 @@ def args_extract(children, table, global_table, param_list=None):
             "number",
             "string",
             "boolean",
+            "character",
             "identifier",
             "binary_expression",
             "logical_expression",

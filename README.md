@@ -130,6 +130,40 @@ Os testes compilam, montam e executam cada programa de `examples/`, conferindo o
 
 ---
 
+## ⚠️ Limitações conhecidas
+
+O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não é suportado ou se comporta de outro jeito; quando possível, o compilador recusa o programa com uma mensagem de erro.
+
+### Não implementado
+
+- Vetores e matrizes
+- Variáveis globais e constantes (`const`)
+- Bibliotecas (`inclua biblioteca`) e as funções prontas `limpa` e `sorteia`
+- Os comandos `escolha`/`caso`, `faca ... enquanto` e `pare`; `senao se` (use `senao { se ... }`); `retorne` sem valor
+- Os operadores `%`, os bit a bit (`&`, `|`, `^`, `~`, `<<`, `>>`), os compostos (`+=`, `-=`, `*=`, `/=`) e o `++`/`--` prefixado (só `x++` e `x--`)
+- Parâmetros por referência (`&`)
+- Declaração de variável dentro do `para`, partes vazias no `para`, blocos sem chaves ou vazios
+- Literais hexadecimais (`0x1F`) e reais escritos como `1.` ou `.5`
+
+### Diferenças em relação ao Portugol Studio
+
+- Não há conversão automática entre `inteiro` e `real` em atribuições, argumentos e retornos: `real r = 2` precisa ser escrito `real r = 2.0`. Operações que misturam os dois tipos funcionam.
+- `funcao inteiro inicio()` é aceito, e o valor retornado vira o código de saída do programa.
+- Não há verificação de função com tipo que termina sem `retorne` (ela devolve 0) nem de código inalcançável.
+- `leia` de `inteiro` e `real` ignora caracteres inválidos em vez de parar com erro, e não confere o limite de 32 bits do `inteiro`.
+- `escreva` de `real` mostra até 6 casas decimais; valores a partir de 2^63 saem errados, e não há texto para `NaN` ou infinito.
+- Reais com expoente (`1E3`) são aceitos, e escapes desconhecidos em textos (`"\q"`) não dão erro.
+- Mensagens de erro em inglês; a compilação para no primeiro erro.
+
+### Limites de implementação
+
+- Gera executáveis apenas para Linux x86-64.
+- A memória usada por textos (`cadeia`) nunca é liberada: concatenar em laços muito longos aumenta o uso de memória.
+- Uma única expressão com mais de cerca de 400 operadores encadeados falha com `maximum recursion depth exceeded`.
+- O desenho da AST (`ast.png`) é sempre gerado e domina o tempo de compilação de programas grandes (cerca de 40 s para 1000 comandos).
+
+---
+
 ## 🤝 Contribuição
 
 Contribuições são bem-vindas! Para colaborar:

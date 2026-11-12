@@ -1,5 +1,7 @@
 """Generates the assembly of expressions and function calls, leaving each value in %rax."""
 
+import struct
+
 from pampa_compiler.assembly.labels import *
 from pampa_compiler.assembly.variables import *
 
@@ -9,7 +11,12 @@ arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
 
 
 def expression_handler(node, table):
-    if node.nodetype == "number":
+    if node.nodetype == "number" and isinstance(node.value, float):
+        # carrying a 'real' in %rax as the 64 bits of its double, like any other value
+        bits = struct.unpack("<q", struct.pack("<d", node.value))[0]
+        return f"    movabsq ${bits}, %rax  # {node.value}\n"
+
+    elif node.nodetype == "number":
         return f"    movq ${node.value}, %rax\n"
 
     elif node.nodetype == "identifier":
@@ -31,6 +38,22 @@ def expression_handler(node, table):
 
     elif node.nodetype == "binary_expression" and node.expr_type == "cadeia":
         return concat_handler(node, table)
+
+    elif node.nodetype == "binary_expression" and node.expr_type == "real":
+        sse_op = {"+": "addsd", "-": "subsd", "*": "mulsd", "/": "divsd"}[node.value]
+        code = load_real_operands(node, table)
+        code += f"    {sse_op} %xmm1, %xmm0\n"
+        code += "    movq %xmm0, %rax\n"
+        return code
+
+    elif node.nodetype == "relational_expression" and "real" in [child.expr_type for child in node.children]:
+        # testing the flags of ucomisd, which compares like an unsigned comparison
+        set_instr = {"==": "sete", "!=": "setne", "<": "setb", "<=": "setbe", ">": "seta", ">=": "setae"}[node.value]
+        code = load_real_operands(node, table)
+        code += "    ucomisd %xmm1, %xmm0\n"
+        code += f"    {set_instr} %al\n"
+        code += "    movzbq %al, %rax\n"
+        return code
 
     elif node.nodetype == "binary_expression":
         left_code = expression_handler(node.children[0], table)
@@ -103,6 +126,11 @@ def expression_handler(node, table):
 
         return code
 
+    elif node.nodetype == "unary_expression" and node.expr_type == "real":
+        code = expression_handler(node.children[0], table)
+        code += "    btcq $63, %rax\n"  # flipping the sign bit of the double
+        return code
+
     elif node.nodetype == "unary_expression":
         code = expression_handler(node.children[0], table)
         code += "    negq %rax\n"
@@ -126,6 +154,22 @@ def expression_handler(node, table):
     return f"    # Unhandled expression: {node.nodetype}\n"
 
 
+def load_real_operands(node, table):
+    """Returns the assembly that leaves both operands of node as doubles, the left in %xmm0 and the right in %xmm1."""
+    code = ""
+    for operand in [node.children[0], node.children[2]]:
+        code += expression_handler(operand, table)
+        if operand.expr_type == "inteiro":
+            code += "    cvtsi2sdq %rax, %xmm0\n"  # turning an 'inteiro' operand into a double
+            code += "    movq %xmm0, %rax\n"
+        code += "    push %rax\n"
+    code += "    pop %rax\n"
+    code += "    movq %rax, %xmm1\n"
+    code += "    pop %rax\n"
+    code += "    movq %rax, %xmm0\n"
+    return code
+
+
 def concat_handler(node, table):
     """Returns the assembly that joins both operands of a '+' into a new string, turning non-text operands into text."""
     code = ""
@@ -141,7 +185,12 @@ def concat_handler(node, table):
 
 def to_text(value_type):
     """Returns the assembly that turns the value of value_type in %rax into the address of its text."""
-    routines = {"inteiro": "pampa_int_to_text", "logico": "pampa_bool_to_text", "caracter": "pampa_char_to_text"}
+    routines = {
+        "inteiro": "pampa_int_to_text",
+        "logico": "pampa_bool_to_text",
+        "caracter": "pampa_char_to_text",
+        "real": "pampa_real_to_text",
+    }
     if value_type not in routines:
         return ""
     return f"    movq %rax, %rdi\n    call {routines[value_type]}\n"

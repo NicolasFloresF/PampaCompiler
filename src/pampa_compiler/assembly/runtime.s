@@ -97,6 +97,144 @@ pampa_bool_to_text:
 pampa_bool_to_text_end:
     ret
 
+# Writes the real whose double bits are in %rdi backwards, ending just before the address %rsi,
+# rounded to 6 decimals with no trailing zeros (but at least one decimal), and returns in %rax the
+# address of the first character (at most 30 bytes). Works for magnitudes below 2^63.
+pampa_format_real:
+    push %rbp
+    mov %rsp, %rbp
+    push %rdi                       # keeping the sign bit for the end
+    btr $63, %rdi                   # magnitude
+    movq %rdi, %xmm0
+    cvttsd2si %xmm0, %r9            # %r9 = integer part
+    cvtsi2sd %r9, %xmm1
+    subsd %xmm1, %xmm0              # fraction
+    mulsd pampa_million(%rip), %xmm0
+    cvtsd2si %xmm0, %rax            # %rax = fraction in millionths, rounded to the nearest
+    cmp $1000000, %rax
+    jl pampa_format_real_digits
+    inc %r9                         # the rounding carried into the integer part
+    sub $1000000, %rax
+pampa_format_real_digits:
+    mov $6, %r10                    # %r10 = decimals to write
+    mov $10, %rcx
+pampa_format_real_trim:
+    cmp $1, %r10
+    je pampa_format_real_decimal
+    mov %rax, %r11
+    xor %rdx, %rdx
+    div %rcx
+    test %rdx, %rdx
+    jnz pampa_format_real_keep      # the last decimal is not zero: keeping it
+    dec %r10
+    jmp pampa_format_real_trim
+pampa_format_real_keep:
+    mov %r11, %rax
+pampa_format_real_decimal:
+    xor %rdx, %rdx
+    div %rcx
+    add $48, %dl                    # '0'
+    dec %rsi
+    mov %dl, (%rsi)
+    dec %r10
+    jnz pampa_format_real_decimal
+    dec %rsi
+    movb $46, (%rsi)                # '.'
+    mov %r9, %rdi
+    call pampa_format_int
+    pop %rdi
+    bt $63, %rdi
+    jnc pampa_format_real_end
+    dec %rax
+    movb $45, (%rax)                # '-'
+pampa_format_real_end:
+    leave
+    ret
+
+# Writes the real whose double bits are in %rdi, as pampa_format_real formats it.
+pampa_print_real:
+    push %rbp
+    mov %rsp, %rbp
+    sub $48, %rsp
+    mov %rbp, %rsi                  # the characters end where the frame ends
+    call pampa_format_real
+    mov %rax, %rsi
+    mov %rbp, %rdx
+    sub %rsi, %rdx
+    call pampa_write
+    leave
+    ret
+
+# Returns in %rax a new zero-terminated string with the real whose double bits are in %rdi.
+pampa_real_to_text:
+    push %rdi
+    mov $48, %rdi
+    call pampa_alloc
+    pop %rdi
+    lea 47(%rax), %rsi
+    movb $0, (%rsi)
+    call pampa_format_real
+    ret
+
+# Reads one line from the standard input and returns in %rax the double bits of the real it
+# holds, such as -12.75: skips characters other than digits, '-' and '.'; an empty line or the
+# end of the input gives 0.0.
+pampa_read_real:
+    push %rbp
+    mov %rsp, %rbp
+    sub $16, %rsp
+    movq $0, -16(%rbp)              # 1 after the '.'
+    xor %r8, %r8                    # %r8 = digits read so far, as an integer
+    xor %r9, %r9                    # %r9 = 1 when a '-' was read
+    xor %r10, %r10                  # %r10 = digits read after the '.'
+pampa_read_real_next:
+    mov $0, %rax                    # read
+    mov $0, %rdi                    # standard input
+    lea -1(%rbp), %rsi
+    mov $1, %rdx
+    syscall
+    cmp $1, %rax
+    jne pampa_read_real_done        # end of the input or error
+    movzbq -1(%rbp), %rax
+    cmp $10, %rax                   # '\n'
+    je pampa_read_real_done
+    cmp $45, %rax                   # '-'
+    jne pampa_read_real_point
+    mov $1, %r9
+    jmp pampa_read_real_next
+pampa_read_real_point:
+    cmp $46, %rax                   # '.'
+    jne pampa_read_real_digit
+    movq $1, -16(%rbp)
+    jmp pampa_read_real_next
+pampa_read_real_digit:
+    sub $48, %rax                   # '0'
+    cmp $9, %rax
+    ja pampa_read_real_next         # not a digit
+    imul $10, %r8
+    add %rax, %r8
+    cmpq $0, -16(%rbp)
+    je pampa_read_real_next
+    inc %r10
+    jmp pampa_read_real_next
+pampa_read_real_done:
+    cvtsi2sd %r8, %xmm0
+    movsd pampa_ten(%rip), %xmm1
+pampa_read_real_scale:
+    test %r10, %r10                 # dividing by 10 once for each digit after the '.'
+    jz pampa_read_real_sign
+    divsd %xmm1, %xmm0
+    dec %r10
+    jmp pampa_read_real_scale
+pampa_read_real_sign:
+    movq %xmm0, %rax
+    test %r9, %r9
+    jz pampa_read_real_end
+    btc $63, %rax
+pampa_read_real_end:
+    leave
+    ret
+
 # Writes the character in the low byte of %rdi.
 pampa_print_char:
     push %rbp
@@ -404,6 +542,10 @@ pampa_same_text_end:
     ret
 
     .section .rodata
+pampa_million:
+    .double 1000000.0
+pampa_ten:
+    .double 10.0
 pampa_true:
     .string "verdadeiro"
 pampa_false:

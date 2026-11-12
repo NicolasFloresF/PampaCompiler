@@ -145,6 +145,7 @@ def print_handler(node, table):
         "logico": "pampa_print_bool",
         "cadeia": "pampa_print_string",
         "caracter": "pampa_print_char",
+        "real": "pampa_print_real",
     }
     code = ""
     for arg in args:
@@ -165,6 +166,7 @@ def read_handler(node, table):
         "logico": "pampa_read_bool",
         "cadeia": "pampa_read_string",
         "caracter": "pampa_read_char",
+        "real": "pampa_read_real",
     }
     code = ""
     for variable in node.children[1:-1]:

@@ -158,7 +158,7 @@ O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não �
 
 - Gera executáveis apenas para Linux x86-64.
 - A memória usada por textos (`cadeia`) nunca é liberada: concatenar em laços muito longos aumenta o uso de memória.
-- Uma única expressão com mais de cerca de 400 operadores encadeados falha com `maximum recursion depth exceeded`.
+- Uma única expressão com mais de cerca de 490 operandos encadeados, ou mais de cerca de 330 blocos aninhados, falha com `maximum recursion depth exceeded`.
 - Com `--ast`, o desenho da AST domina o tempo de compilação de programas grandes (cerca de 40 s para 1000 comandos).
 
 ---

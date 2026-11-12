@@ -1,6 +1,6 @@
 # import third-party modules
 from argparse import ArgumentParser
-import os, sys
+import sys
 
 # import project modules
 from pampa_compiler.lexical.tokens import *
@@ -30,26 +30,29 @@ def print_table(table, debug):
 
 
 def main():
-    # get the CLI (stdout) and debug file name
+    # get the CLI (stdout) and, with --debug, the debug file
     stdout = sys.stdout
-    debug = open(args.debug, "w")
+    debug = open("compile.out", "w") if args.debug else None
 
     # instantiate the lexer and run it on the input data
     lexer = lex.lex()
     lexer.input(data)
 
     # print the tokens to the debug file
-    print("Tokens:", file=debug)
-    print_tokens(lexer, debug)
+    if debug:
+        print("Tokens:", file=debug)
+        print_tokens(lexer, debug)
 
     # reset line number and do the syntax parsing
     lexer.lineno = 1
     parser = yacc.yacc(debug=False)
     syntaxParsing = parser.parse(data, lexer=lexer)
 
-    # print the syntax tree to the debug file
-    print("AST:", file=debug)
-    print(syntaxParsing, file=debug)
+    # print the syntax tree to the debug file; writing a deep tree as text is slow and recursive,
+    # so only with --debug
+    if debug:
+        print("AST:", file=debug)
+        print(syntaxParsing, file=debug)
 
     # plot the syntax tree in a graphviz format, only when asked: it dominates the time of big programs
     if args.ast:
@@ -64,8 +67,9 @@ def main():
     global_table = build_global_table(function_list)
 
     # print the global table to the debug file
-    print(f"Parent: {global_table.return_parent()}", file=debug)
-    print_table(global_table, debug=debug)
+    if debug:
+        print(f"Parent: {global_table.return_parent()}", file=debug)
+        print_table(global_table, debug=debug)
 
     # itarate through the function list, build local tables and do semantic analysis
     for function in function_list:
@@ -73,7 +77,7 @@ def main():
         semantic_analysis(function, local_tables[-1], global_table)
 
     # print the local tables to the debug file
-    for table in local_tables:
+    for table in local_tables if debug else []:
         # to get global table function from a local table, do global_table.return_table()[table.return_parent()
         print(f"Parent: {table.return_parent()}", file=debug)
         print(f"Details: {global_table.return_table()[table.return_parent()]}", file=debug)
@@ -88,13 +92,7 @@ def main():
 if __name__ == "__main__":
     parser = ArgumentParser(description="Compiler for the Por language")
     parser.add_argument("--file", type=str, required=True, help="Input data file")
-    parser.add_argument(
-        "--debug",
-        default=os.devnull,
-        action="store_const",
-        const="compile.out",
-        help="Enable compile.out file",
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable compile.out file")
     parser.add_argument("--ast", action="store_true", help="Draw the syntax tree into ast.png (needs Graphviz)")
     args = parser.parse_args()
     data = read_file(args.file)

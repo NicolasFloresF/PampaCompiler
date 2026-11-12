@@ -136,7 +136,7 @@ def p_binary_expression(p):
 
 def p_expr_uminus(p):
     "expression : MINUS expression %prec UMINUS"
-    p[0] = ASTnode("unary_expression", [p[2]], p.lineno(1))
+    p[0] = ASTnode("unary_expression", children=[p[2]], value=p[1], lineno=p.lineno(1))
 
 
 def p_not_expression(p):

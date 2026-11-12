@@ -91,6 +91,11 @@ def expression_handler(node, table):
 
         return code
 
+    elif node.nodetype == "unary_expression":
+        code = expression_handler(node.children[0], table)
+        code += "    negq %rax\n"
+        return code
+
     elif node.nodetype == "not_expression":
         # flipping the operand between 1 (verdadeiro) and 0 (falso)
         code = expression_handler(node.children[0], table)

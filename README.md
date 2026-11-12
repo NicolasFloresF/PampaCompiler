@@ -149,7 +149,7 @@ O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não �
 
 - Não há conversão automática entre `inteiro` e `real` em atribuições, argumentos e retornos: `real r = 2` precisa ser escrito `real r = 2.0`. Operações que misturam os dois tipos funcionam.
 - `funcao inteiro inicio()` é aceito, e o valor retornado vira o código de saída do programa.
-- Não há verificação de função com tipo que termina sem `retorne` (ela devolve 0) nem de código inalcançável.
+- Código depois de um `retorne` não é recusado (no Portugol Studio, é erro).
 - `leia` de `inteiro` e `real` ignora caracteres inválidos em vez de parar com erro, e não confere o limite de 32 bits do `inteiro`.
 - `escreva` de `real` mostra até 6 casas decimais; valores a partir de 2^63 saem errados, e não há texto para `NaN` ou infinito.
 - Reais com expoente (`1E3`) são aceitos, e escapes desconhecidos em textos (`"\q"`) não dão erro.

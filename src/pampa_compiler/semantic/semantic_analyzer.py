@@ -65,10 +65,32 @@ def check_commands(block, table, global_table):
 
 
 def check_function(node, table, global_table):
-    """Checks the commands of a function."""
+    """Checks the commands of a function, and that a typed function cannot end without retorne."""
     block = next((child for child in node.children if child.nodetype == "commands"), None)
     if block:
         check_commands(block, table, global_table)
+
+    return_type = node.children[0].value
+    if return_type != "vazio" and not (block and always_returns(block)):
+        print(
+            f"[Line {node.lineno}]: Missing return: function '{node.value}' of type '{return_type}' can end without retorne"
+        )
+        sys.exit(1)
+
+
+def always_returns(block):
+    """Returns True when every path through the commands of block reaches a retorne.
+
+    As in Portugol Studio, a 'se' counts only with a 'senao' whose both blocks always return,
+    and loops never count, because their body may not run.
+    """
+    for cmd in block.children:
+        if cmd.nodetype == "return_expression":
+            return True
+        if cmd.nodetype == "if" and len(cmd.children) == 10:
+            if always_returns(cmd.children[4]) and always_returns(cmd.children[8]):
+                return True
+    return False
 
 
 def check_assignment(node, table, global_table):

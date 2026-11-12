@@ -137,6 +137,7 @@ def assignment_handler(node, table):
         else:
             code += f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n"
     elif expr.nodetype in [
+        "identifier",
         "binary_expression",
         "logical_expression",
         "relational_expression",
@@ -152,43 +153,12 @@ def assignment_handler(node, table):
 
 def decls_handler(node, table, global_table):
     if node.nodetype == "declarations":
-        for child in node.children:
-            if child.nodetype == "atribuition":
-                var_name = node.children[0].value
-                expr = node.children[2]
+        # storing an initializer like an assignment: both are the name, '=' and the expression
+        if len(node.children) > 1 and node.children[1].nodetype == "atribuition":
+            print(assignment_handler(node, table))
 
-                if expr.nodetype == "number":
-                    print(f"    # {node.children[0].value} = {node.children[2].value}")
-                    print(store_number(expr.value, table.lookup(var_name).offset))
-
-                elif expr.nodetype == "string":
-                    print(f"    # {node.children[0].value} = {node.children[2].value}")
-                    if expr.value not in labels:
-                        new_label(expr.value, "string")
-                    print(f"    lea {labels[expr.value][0]}(%rip), %rax")
-                    print(f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n")
-
-                elif expr.nodetype == "boolean":
-                    print(f"    # {node.children[0].value} = {node.children[2].value}")
-                    if expr.value == "verdadeiro":
-                        print(f"    movq $1, {table.lookup(var_name).offset}(%rbp)\n")
-                    else:
-                        print(f"    movq $0, {table.lookup(var_name).offset}(%rbp)\n")
-
-            if child.nodetype in [
-                "binary_expression",
-                "logical_expression",
-                "relational_expression",
-                "not_expression",
-                "unary_expression",
-                "call_function_expression",
-            ]:
-                expr_code = expression_handler(child, table)
-                print(expr_code)
-                print(f"    movq %rax, {table.lookup(var_name).offset}(%rbp)\n")
-
-            if child.nodetype == "declarations":
-                decls_handler(child, table, global_table)
+        if node.children[-1].nodetype == "declarations":
+            decls_handler(node.children[-1], table, global_table)
 
 
 def print_handler(node, table):

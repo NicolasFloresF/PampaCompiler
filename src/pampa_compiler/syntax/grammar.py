@@ -136,7 +136,17 @@ def p_binary_expression(p):
 
 def p_expr_uminus(p):
     "expression : MINUS expression %prec UMINUS"
-    p[0] = ASTnode("unary_expression", children=[p[2]], value=p[1], lineno=p.lineno(1))
+    # folding the sign into a number literal, so '-5' is the number -5
+    if p[2].nodetype == "number":
+        p[0] = ASTnode("number", value=-p[2].value, lineno=p.lineno(1))
+    else:
+        p[0] = ASTnode("unary_expression", children=[p[2]], value=p[1], lineno=p.lineno(1))
+
+
+def p_expr_uplus(p):
+    "expression : PLUS expression %prec UMINUS"
+    # dropping the unary plus, which does not change the value
+    p[0] = p[2]
 
 
 def p_not_expression(p):

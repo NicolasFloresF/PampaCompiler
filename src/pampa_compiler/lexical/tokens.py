@@ -105,7 +105,8 @@ def t_NUMBER(t):
     # decimal = [.]digit
     # exponent = E[+-]digit
     # number = digit | digit decimal | digit exponent | digit decimal exponent
-    r"([-]|[+])?\d+([.]\d+)?([E]([+]|[-])?\d+)?"
+    # leaving the sign out: '-' and '+' are operators, so 'x-1' is a subtraction
+    r"\d+([.]\d+)?([E]([+]|[-])?\d+)?"
     try:
         t.value = int(t.value)
     except ValueError:

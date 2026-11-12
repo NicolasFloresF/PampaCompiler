@@ -11,6 +11,19 @@ arg_regs = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
 
 
 def expression_handler(node, table):
+    code = expression_code(node, table)
+    # converting a value stored, passed or returned where the other numeric type is expected
+    if node.convert_to == "real":
+        code += "    cvtsi2sdq %rax, %xmm0\n"
+        code += "    movq %xmm0, %rax\n"
+    elif node.convert_to == "inteiro":
+        code += "    movq %rax, %xmm0\n"
+        code += "    cvttsd2si %xmm0, %eax\n"  # truncating toward zero, like the (int) cast of Java
+        code += "    cltq\n"
+    return code
+
+
+def expression_code(node, table):
     if node.nodetype == "number" and isinstance(node.value, float):
         # carrying a 'real' in %rax as the 64 bits of its double, like any other value
         bits = struct.unpack("<q", struct.pack("<d", node.value))[0]

@@ -11,6 +11,8 @@ class ASTnode:
         self.childnum = len(self.children)
         # type of the expression, filled by the semantic analysis on the nodes whose code depends on it
         self.expr_type = None
+        # type the value must be converted to where it is stored, passed or returned ('inteiro' <-> 'real')
+        self.convert_to = None
 
     def __repr__(self, level=0):
         indent = "  " * level

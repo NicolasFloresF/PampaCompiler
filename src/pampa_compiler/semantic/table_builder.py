@@ -108,7 +108,7 @@ def declare_names(decls, var_type, table, scopes, global_table):
         initializer = decls.children[2]
         resolve_names(initializer, table, scopes, global_table)
         expr_type = evaluate_expr_type(initializer, table, global_table)
-        if expr_type != var_type:
+        if not accepts(var_type, initializer):
             raise TypeMismatchError(
                 f"Type mismatch: Symbol [{name_node.value}] expected type '{var_type}' but get type '{expr_type}' instead",
                 decls.children[1].lineno,

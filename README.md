@@ -147,7 +147,7 @@ O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não �
 
 ### Diferenças em relação ao Portugol Studio
 
-- Não há conversão automática entre `inteiro` e `real` em atribuições, argumentos e retornos: `real r = 2` precisa ser escrito `real r = 2.0`. Operações que misturam os dois tipos funcionam.
+- A conversão entre `inteiro` e `real` em atribuições, argumentos e retornos é silenciosa (o Portugol Studio mostra um aviso), e um `real` grande demais para o `inteiro` não satura no limite como no Java.
 - `funcao inteiro inicio()` é aceito, e o valor retornado vira o código de saída do programa.
 - Código depois de um `retorne` não é recusado (no Portugol Studio, é erro).
 - `leia` de `inteiro` e `real` ignora caracteres inválidos em vez de parar com erro, e não confere o limite de 32 bits do `inteiro`.

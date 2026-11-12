@@ -107,7 +107,7 @@ def check_assignment(node, table, global_table):
         print(f"{e}")
         sys.exit(1)
 
-    if expr_type != declared.type:
+    if not accepts(declared.type, node.children[2]):
         raise TypeMismatchError(
             f"Type mismatch: Symbol [{node.children[0].value}] expected type '{declared.type}' but get type '{expr_type}' instead",
             node.lineno,
@@ -144,7 +144,7 @@ def check_return(node, table, global_table):
             f"Type mismatch: Function '{table.return_parent()}' has no return type, so it cannot return a value",
             node.lineno,
         )
-    if expr_type != return_type:
+    if not accepts(return_type, node.children[1]):
         raise TypeMismatchError(
             f"Type mismatch: Function '{table.return_parent()}' must return type '{return_type}', but get type '{expr_type}' instead",
             node.lineno,

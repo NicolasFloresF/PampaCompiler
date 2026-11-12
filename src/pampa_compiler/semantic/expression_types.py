@@ -5,6 +5,20 @@ import sys
 from pampa_compiler.core.symbol_table import *
 
 
+def accepts(target_type, expr):
+    """Returns True when the value of expr (already typed) fits where target_type is expected.
+
+    As in Portugol Studio, 'inteiro' and 'real' fit each other: the value is converted, a 'real'
+    becoming 'inteiro' by truncation. The conversion is recorded on expr for the code generator.
+    """
+    if expr.expr_type == target_type:
+        return True
+    if {expr.expr_type, target_type} == {"inteiro", "real"}:
+        expr.convert_to = target_type
+        return True
+    return False
+
+
 def evaluate_expr_type(expr, table, global_table):
     """Returns the type of an expression and keeps it on the node, where the code generator reads it."""
     expr.expr_type = find_expr_type(expr, table, global_table)
@@ -141,8 +155,9 @@ def check_call(node, table, global_table):
         )
 
     # check argument types
+    arg_nodes = params.children if params else []
     for i in range(len(arg_list)):
-        if arg_list[i] != declared.params[i]:
+        if not accepts(declared.params[i], arg_nodes[i]):
             raise TypeMismatchError(
                 f"Type mismatch: Argument {i + 1} of function '{func_name}' expected type '{declared.params[i]}', but got '{arg_list[i]}' instead",
                 node.lineno,

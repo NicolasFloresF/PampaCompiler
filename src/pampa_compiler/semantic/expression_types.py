@@ -2,7 +2,7 @@
 
 import sys
 
-from pampa_compiler.core.symbol_table import *
+from pampa_compiler.core.symbols import *
 
 
 def accepts(target_type, expr):

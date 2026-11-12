@@ -1,6 +1,6 @@
 import sys
 
-from pampa_compiler.core.symbol_table import *
+from pampa_compiler.core.symbols import *
 from pampa_compiler.core.ast_node import ASTnode
 from pampa_compiler.semantic.expression_types import *
 

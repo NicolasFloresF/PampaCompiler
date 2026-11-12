@@ -1,7 +1,7 @@
 import os
 
-from pampa_compiler.core.symbol_table import *
-from pampa_compiler.assembly.labels import *
+from pampa_compiler.core.symbols import *
+from pampa_compiler.assembly.labeling import *
 from pampa_compiler.assembly.expressions import *
 from pampa_compiler.assembly.variables import *
 

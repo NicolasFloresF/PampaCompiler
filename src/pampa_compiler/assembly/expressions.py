@@ -2,7 +2,7 @@
 
 import struct
 
-from pampa_compiler.assembly.labels import *
+from pampa_compiler.assembly.labeling import *
 from pampa_compiler.assembly.variables import *
 
 

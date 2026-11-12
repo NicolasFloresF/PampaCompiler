@@ -7,7 +7,7 @@ from .exceptions import *
 from .ast_node import *
 
 # Symbol tables
-from .symbol_table import *
+from .symbols import *
 
 # Size in bytes of each type
 from .type_sizes import *

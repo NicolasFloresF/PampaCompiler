@@ -5,10 +5,13 @@ from pampa_compiler.core.ast_node import ASTnode
 
 # !Remember: expression is a tree node, but commands is not
 
+# from the loosest to the tightest; as in Portugol Studio, 'ou' is looser than 'e',
+# and both are looser than the relational operators, so 'a < b e b < c' needs no parentheses
 precedence = (
+    ("left", "OR"),
+    ("left", "AND"),
     ("nonassoc", "EQUAL", "DIFFERENT"),
     ("nonassoc", "LESS_THAN", "LESS_EQUAL", "GREATER_THAN", "GREATER_EQUAL"),
-    ("left", "AND", "OR"),
     ("left", "NOT"),
     ("left", "PLUS", "MINUS"),
     ("left", "TIMES", "DIVIDE"),

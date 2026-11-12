@@ -149,7 +149,6 @@ O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não �
 
 - A conversão entre `inteiro` e `real` em atribuições, argumentos e retornos é silenciosa (o Portugol Studio mostra um aviso), e um `real` grande demais para o `inteiro` não satura no limite como no Java.
 - `funcao inteiro inicio()` é aceito, e o valor retornado vira o código de saída do programa.
-- Código depois de um `retorne` não é recusado (no Portugol Studio, é erro).
 - `leia` de `real` não aceita expoente (`7e2`) nem mais de 18 dígitos.
 - `escreva` de `real` mostra até 6 casas decimais; valores a partir de 2^63 saem errados, e não há texto para `NaN` ou infinito.
 - Reais com expoente (`1E3`) são aceitos, e escapes desconhecidos em textos (`"\q"`) não dão erro.

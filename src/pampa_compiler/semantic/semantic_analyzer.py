@@ -56,7 +56,11 @@ def semantic_analysis(node, table, global_table):
 
 def check_commands(block, table, global_table):
     """Checks every command of a block, stopping the compilation at the first error."""
-    for cmd in block.children:
+    for index, cmd in enumerate(block.children):
+        # refusing commands that can never run, as Portugol Studio does
+        if index > 0 and command_always_returns(block.children[index - 1]):
+            print(f"[Line {cmd.lineno}]: Unreachable code: command after retorne")
+            sys.exit(1)
         try:
             semantic_analysis(cmd, table, global_table)
         except Exception as e:
@@ -79,17 +83,20 @@ def check_function(node, table, global_table):
 
 
 def always_returns(block):
-    """Returns True when every path through the commands of block reaches a retorne.
+    """Returns True when every path through the commands of block reaches a retorne."""
+    return any(command_always_returns(cmd) for cmd in block.children)
+
+
+def command_always_returns(cmd):
+    """Returns True when every path through cmd reaches a retorne.
 
     As in Portugol Studio, a 'se' counts only with a 'senao' whose both blocks always return,
     and loops never count, because their body may not run.
     """
-    for cmd in block.children:
-        if cmd.nodetype == "return_expression":
-            return True
-        if cmd.nodetype == "if" and len(cmd.children) == 10:
-            if always_returns(cmd.children[4]) and always_returns(cmd.children[8]):
-                return True
+    if cmd.nodetype == "return_expression":
+        return True
+    if cmd.nodetype == "if" and len(cmd.children) == 10:
+        return always_returns(cmd.children[4]) and always_returns(cmd.children[8])
     return False
 
 

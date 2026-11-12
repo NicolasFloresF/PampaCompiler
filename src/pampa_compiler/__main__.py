@@ -2,12 +2,8 @@
 from argparse import ArgumentParser
 import sys
 
-# import project modules
-from pampa_compiler.lexical.tokens import *
-from pampa_compiler.syntax.grammar import *
-from pampa_compiler.semantic.semantic_analyzer import *
-from pampa_compiler.semantic.table_builder import *
-from pampa_compiler.assembly.code_generator import *
+# import the compiler; PLY lex() and yacc() below read the token and grammar rules from these globals
+from pampa_compiler import *
 
 
 def read_file(file_name):

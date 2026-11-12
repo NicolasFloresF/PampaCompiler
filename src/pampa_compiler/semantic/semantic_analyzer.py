@@ -41,6 +41,18 @@ def semantic_analysis(node, table, global_table):
         elif node.nodetype == "for":
             check_for(node, table, global_table)
 
+        elif node.nodetype == "declaration":
+            # skipping declarations: build_local_table already checked them
+            pass
+
+        else:
+            # refusing other expressions as commands, as Portugol Studio does: their value would be lost,
+            # and an unknown word (such as a keyword this compiler lacks) would be silently ignored
+            raise InvalidCommandError(
+                f"Invalid command: {node.nodetype} ({node.value}) is not a function call or an assignment",
+                node.lineno,
+            )
+
 
 def check_commands(block, table, global_table):
     """Checks every command of a block, stopping the compilation at the first error."""

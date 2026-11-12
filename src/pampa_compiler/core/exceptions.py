@@ -35,3 +35,7 @@ class ParamCountError(CompilerError):
     """Raised when the number of parameters is incorrect"""
 
     pass
+
+
+class InvalidCommandError(CompilerError):
+    """Raised when an expression that is not a call or an assignment stands alone as a command"""

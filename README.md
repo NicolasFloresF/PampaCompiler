@@ -26,6 +26,7 @@ O código deste repositório **não é o mesmo que foi apresentado na disciplina
 - Executáveis independentes, com `escreva` e `leia` feitos por chamadas de sistema do Linux
 - Funções com tipo de retorno, parâmetros e recursão
 - Comentários `//` e `/* */`
+- Operadores lógicos `e`, `ou` e `nao`, com a precedência do Portugol Studio
 - Testes automatizados sobre os programas da pasta `examples/`
 
 A versão apresentada continua no histórico do git, marcada com a tag `apresentacao-2025` (commit `a534725`).

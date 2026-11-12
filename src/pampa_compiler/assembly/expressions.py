@@ -91,6 +91,12 @@ def expression_handler(node, table):
 
         return code
 
+    elif node.nodetype == "not_expression":
+        # flipping the operand between 1 (verdadeiro) and 0 (falso)
+        code = expression_handler(node.children[0], table)
+        code += "    xorq $1, %rax\n"
+        return code
+
     elif node.nodetype == "call_function_expression":
         # calls without arguments have no expression_list child
         args = []

@@ -140,6 +140,7 @@ def assignment_handler(node, table):
         "binary_expression",
         "logical_expression",
         "relational_expression",
+        "not_expression",
         "call_function_expression",
     ]:
         code += expression_handler(expr, table)
@@ -177,6 +178,7 @@ def decls_handler(node, table, global_table):
                 "binary_expression",
                 "logical_expression",
                 "relational_expression",
+                "not_expression",
                 "call_function_expression",
             ]:
                 expr_code = expression_handler(child, table)

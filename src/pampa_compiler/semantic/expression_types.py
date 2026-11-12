@@ -51,6 +51,14 @@ def evaluate_expr_type(expr, table, global_table):
                 )
         if expr.nodetype == "relational_expression":
             return "logico"
+    elif expr.nodetype == "not_expression":
+        operand_type = evaluate_expr_type(expr.children[0], table, global_table)
+        if operand_type != "logico":
+            raise TypeMismatchError(
+                f"Type mismatch: nao expected type 'logico', but get type '{operand_type}' instead",
+                expr.lineno,
+            )
+        return "logico"
     elif expr.nodetype == "call_function_expression":
         return_type = check_call(expr, table, global_table)
         if return_type == "vazio":
@@ -120,6 +128,7 @@ def args_extract(children, table, global_table, param_list=None):
             "binary_expression",
             "logical_expression",
             "relational_expression",
+            "not_expression",
             "call_function_expression",
         ]:
             try:

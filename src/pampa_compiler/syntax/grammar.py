@@ -12,10 +12,10 @@ precedence = (
     ("left", "AND"),
     ("nonassoc", "EQUAL", "DIFFERENT"),
     ("nonassoc", "LESS_THAN", "LESS_EQUAL", "GREATER_THAN", "GREATER_EQUAL"),
-    ("left", "NOT"),
     ("left", "PLUS", "MINUS"),
     ("left", "TIMES", "DIVIDE"),
-    ("right", "UMINUS"),
+    # unary operators bind tightest, so 'nao a < b' is '(nao a) < b', as in Portugol Studio
+    ("right", "UMINUS", "NOT"),
 )
 
 
@@ -137,6 +137,11 @@ def p_binary_expression(p):
 def p_expr_uminus(p):
     "expression : MINUS expression %prec UMINUS"
     p[0] = ASTnode("unary_expression", [p[2]], p.lineno(1))
+
+
+def p_not_expression(p):
+    """expression : NOT expression"""
+    p[0] = ASTnode("not_expression", children=[p[2]], value=p[1], lineno=p.lineno(1))
 
 
 def p_logical_expression(p):

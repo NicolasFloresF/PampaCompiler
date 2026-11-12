@@ -140,7 +140,7 @@ def print_handler(node, table):
     args = node.children[2].children
     print(f"    # {node.children[0].value} ({', '.join([str(arg.value) for arg in args])})")
     # choosing the runtime routine of each argument by the type the semantic analysis found for it
-    routines = {"inteiro": "pampa_print_int", "logico": "pampa_print_bool", "caracter": "pampa_print_string"}
+    routines = {"inteiro": "pampa_print_int", "logico": "pampa_print_bool", "cadeia": "pampa_print_string"}
     code = ""
     for arg in args:
         if arg.expr_type not in routines:
@@ -155,7 +155,7 @@ def print_handler(node, table):
 
 def read_handler(node, table):
     # choosing the runtime routine by the type of each variable
-    routines = {"inteiro": "pampa_read_int", "logico": "pampa_read_bool"}
+    routines = {"inteiro": "pampa_read_int", "logico": "pampa_read_bool", "cadeia": "pampa_read_string"}
     code = ""
     for variable in node.children[1:-1]:
         declared = table.lookup(variable.value)

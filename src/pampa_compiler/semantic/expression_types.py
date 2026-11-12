@@ -24,7 +24,7 @@ def find_expr_type(expr, table, global_table):
         elif isinstance(expr.value, float):
             return "real"
     elif expr.nodetype == "string":
-        return "caracter"
+        return "cadeia"
     elif expr.nodetype == "boolean":
         return "logico"
     elif expr.nodetype == "identifier":
@@ -44,6 +44,9 @@ def find_expr_type(expr, table, global_table):
 
         numbers = ["inteiro", "real"]
         if expr.nodetype == "binary_expression":
+            # joining text: a 'cadeia' on either side of '+' turns the other value into text
+            if expr.value == "+" and "cadeia" in [left_type, right_type]:
+                return "cadeia"
             if left_type in numbers and right_type in numbers:
                 if left_type == right_type:
                     return left_type

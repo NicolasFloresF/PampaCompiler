@@ -16,6 +16,7 @@ reserved = {
     "inteiro": "INTEGER",
     "real": "FLOAT",
     "caracter": "CHAR",
+    "cadeia": "STRING_TYPE",
     "logico": "BOOLEAN",
     "verdadeiro": "TRUE",
     "falso": "FALSE",

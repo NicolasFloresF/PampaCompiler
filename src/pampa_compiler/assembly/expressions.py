@@ -26,6 +26,9 @@ def expression_handler(node, table):
             return "    movq $1, %rax\n"
         return "    movq $0, %rax\n"
 
+    elif node.nodetype == "binary_expression" and node.expr_type == "cadeia":
+        return concat_handler(node, table)
+
     elif node.nodetype == "binary_expression":
         left_code = expression_handler(node.children[0], table)
         right_code = expression_handler(node.children[2], table)
@@ -63,6 +66,16 @@ def expression_handler(node, table):
         code += right_code
         code += "    movq %rax, %rbx\n"
         code += "    pop %rax\n"
+
+        # comparing the text of two strings, not their addresses
+        if node.children[0].expr_type == "cadeia":
+            code += "    movq %rax, %rdi\n"
+            code += "    movq %rbx, %rsi\n"
+            code += "    call pampa_text_equal\n"
+            if op == "!=":
+                code += "    xorq $1, %rax\n"
+            return code
+
         code += "    cmpq %rbx, %rax\n"
         code += f"    {set_instr} %al\n"
         code += "    movzbq %al, %rax\n"
@@ -108,6 +121,27 @@ def expression_handler(node, table):
         return call_expression_handler(args, table, node.children[0].value)
 
     return f"    # Unhandled expression: {node.nodetype}\n"
+
+
+def concat_handler(node, table):
+    """Returns the assembly that joins both operands of a '+' into a new string, turning non-text operands into text."""
+    code = ""
+    for operand in [node.children[0], node.children[2]]:
+        code += expression_handler(operand, table)
+        code += to_text(operand.expr_type)
+        code += "    push %rax\n"
+    code += "    pop %rsi\n"
+    code += "    pop %rdi\n"
+    code += "    call pampa_concat\n"
+    return code
+
+
+def to_text(value_type):
+    """Returns the assembly that turns the value of value_type in %rax into the address of its text."""
+    routines = {"inteiro": "pampa_int_to_text", "logico": "pampa_bool_to_text"}
+    if value_type not in routines:
+        return ""
+    return f"    movq %rax, %rdi\n    call {routines[value_type]}\n"
 
 
 def call_expression_handler(args, table, func_name):

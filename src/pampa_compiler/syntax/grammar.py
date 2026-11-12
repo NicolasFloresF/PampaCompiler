@@ -276,7 +276,7 @@ def p_declaration(p):
 def p_type(p):
     """type : INTEGER
     | FLOAT
-    | STRING
+    | STRING_TYPE
     | BOOLEAN"""
     p[0] = p[1]
 

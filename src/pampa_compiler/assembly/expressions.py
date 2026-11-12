@@ -84,9 +84,9 @@ def expression_handler(node, table):
         code += "    movq %rax, %rbx\n"
         code += "    pop %rax\n"
 
-        if op == "&&":
+        if op == "e":
             code += "    andq %rbx, %rax\n"
-        elif op == "||":
+        elif op == "ou":
             code += "    orq %rbx, %rax\n"
 
         return code

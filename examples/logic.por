@@ -4,16 +4,16 @@ programa {
     inteiro b = 7
     inteiro hits = 0
     logico inside = falso
-    se ((a < 5) && (b > 5)) {
+    se ((a < 5) e (b > 5)) {
       inside = verdadeiro
     }
     se (inside) {
       hits++
     }
-    se ((a == b) || (b > a)) {
+    se ((a == b) ou (b > a)) {
       hits++
     }
-    se ((a > b) || (b < a)) {
+    se ((a > b) ou (b < a)) {
       hits++
     }
     escreva("inside = ", inside, "\n")

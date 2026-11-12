@@ -22,12 +22,13 @@ reserved = {
     "vazio": "VOID",
     "programa": "PROGRAM",
     "retorne": "RETURN",
+    # logical operators are words, as in Portugol Studio
+    "e": "AND",
+    "ou": "OR",
 }
 
 relational_operators = [
     "ATTRIBUTION",
-    "AND",
-    "OR",
     "NOT",
     "EQUAL",
     "DIFFERENT",
@@ -78,8 +79,6 @@ t_GREATER_EQUAL = r"\>="
 t_GREATER_THAN = r"\>"
 t_LESS_THAN = r"\<"
 t_ATTRIBUTION = r"\="
-t_AND = r"\&&"
-t_OR = r"\|\|"
 t_NOT = r"\!"
 t_PLUS = r"\+"
 t_MINUS = r"\-"

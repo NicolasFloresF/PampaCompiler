@@ -42,8 +42,9 @@ def find_expr_type(expr, table, global_table):
             print(f"{e}")
             sys.exit(1)
 
+        numbers = ["inteiro", "real"]
         if expr.nodetype == "binary_expression":
-            if left_type and right_type in ["inteiro", "real"]:
+            if left_type in numbers and right_type in numbers:
                 if left_type == right_type:
                     return left_type
                 else:
@@ -62,7 +63,14 @@ def find_expr_type(expr, table, global_table):
                     expr.lineno,
                 )
         if expr.nodetype == "relational_expression":
-            return "logico"
+            # comparing numbers with any operator, and values of the same type for equality only
+            both_numbers = left_type in numbers and right_type in numbers
+            if both_numbers or (expr.value in ["==", "!="] and left_type == right_type):
+                return "logico"
+            raise TypeMismatchError(
+                f"Type mismatch: {expr.nodetype} ({expr.value}) cannot compare type '{left_type}' with type '{right_type}'",
+                expr.lineno,
+            )
     elif expr.nodetype == "unary_expression":
         operand_type = evaluate_expr_type(expr.children[0], table, global_table)
         if operand_type not in ["inteiro", "real"]:

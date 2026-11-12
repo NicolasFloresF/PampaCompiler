@@ -51,9 +51,10 @@ def main():
     print("AST:", file=debug)
     print(syntaxParsing, file=debug)
 
-    # plot the syntax tree in a graphviz format
-    dot = syntaxParsing.to_graphviz()
-    dot.render("ast", format="png", cleanup=True)
+    # plot the syntax tree in a graphviz format, only when asked: it dominates the time of big programs
+    if args.ast:
+        dot = syntaxParsing.to_graphviz()
+        dot.render("ast", format="png", cleanup=True)
 
     # get the function list from syntax tree
     function_list = syntaxParsing.children[1].children
@@ -94,6 +95,7 @@ if __name__ == "__main__":
         const="compile.out",
         help="Enable compile.out file",
     )
+    parser.add_argument("--ast", action="store_true", help="Draw the syntax tree into ast.png (needs Graphviz)")
     args = parser.parse_args()
     data = read_file(args.file)
     main()

@@ -56,7 +56,7 @@ def compile_program(source: str, work_dir: str) -> subprocess.CompletedProcess:
 
     Args:
         source (str): Portugol source code.
-        work_dir (str): Directory that receives the source, the assembly and ast.png.
+        work_dir (str): Directory that receives the source and the assembly.
 
     Returns:
         subprocess.CompletedProcess: Result of the compiler run.

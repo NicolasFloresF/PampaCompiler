@@ -79,7 +79,7 @@ O PampaCompiler:
 - Linux x86-64
 - Python **3.12+**
 - [`uv`](https://docs.astral.sh/uv/) instalado
-- [Graphviz](https://graphviz.org/) (programa `dot`, usado para desenhar a AST)
+- [Graphviz](https://graphviz.org/) (programa `dot`, usado só para desenhar a AST com `--ast`)
 - GNU binutils (`as` e `ld`, para montar e ligar o assembly gerado)
 - Bibliotecas `PLY` e `graphviz` (instaladas automaticamente pelo uv)
 
@@ -107,7 +107,7 @@ Para compilar um arquivo de exemplo:
 uv run python -m pampa_compiler --file examples/hello_world.por
 ```
 
-O compilador gera `examples/hello_world.asm` e desenha a AST em `ast.png`. Com a opção `--debug`, ele também grava os tokens, a AST e as tabelas de símbolos em `compile.out`.
+O compilador gera `examples/hello_world.asm`. Com a opção `--ast`, ele também desenha a AST em `ast.png`; com `--debug`, grava os tokens, a AST e as tabelas de símbolos em `compile.out`.
 
 Para montar, ligar e executar o programa gerado (na pasta `build/`, ignorada pelo git):
 
@@ -159,7 +159,7 @@ O PampaCompiler implementa um subconjunto do Portugol Studio. O que segue não �
 - Gera executáveis apenas para Linux x86-64.
 - A memória usada por textos (`cadeia`) nunca é liberada: concatenar em laços muito longos aumenta o uso de memória.
 - Uma única expressão com mais de cerca de 400 operadores encadeados falha com `maximum recursion depth exceeded`.
-- O desenho da AST (`ast.png`) é sempre gerado e domina o tempo de compilação de programas grandes (cerca de 40 s para 1000 comandos).
+- Com `--ast`, o desenho da AST domina o tempo de compilação de programas grandes (cerca de 40 s para 1000 comandos).
 
 ---
 

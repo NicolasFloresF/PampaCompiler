@@ -189,16 +189,19 @@ pampa_real_to_text:
     ret
 
 # Reads one line from the standard input and returns in %rax the double bits of the real it
-# holds, such as -12.75: skips characters other than digits, '-' and '.'; an empty line or the
-# end of the input gives 0.0.
+# holds: an optional sign and up to 18 digits with an optional '.' among them (12.75, 1., .5),
+# with spaces around. Any other line, or the end of the input, stops the program with a message
+# and exit status 1.
 pampa_read_real:
     push %rbp
     mov %rsp, %rbp
-    sub $16, %rsp
-    movq $0, -16(%rbp)              # 1 after the '.'
+    sub $32, %rsp
+    movq $0, -16(%rbp)              # digits read
+    movq $0, -24(%rbp)              # digits read after the '.'
     xor %r8, %r8                    # %r8 = digits read so far, as an integer
     xor %r9, %r9                    # %r9 = 1 when a '-' was read
-    xor %r10, %r10                  # %r10 = digits read after the '.'
+    xor %r10, %r10                  # %r10 = 0 before the number, 1 after its sign, 2 in its digits,
+                                    # 4 after the '.', 3 after the number
 pampa_read_real_next:
     mov $0, %rax                    # read
     mov $0, %rdi                    # standard input
@@ -210,35 +213,71 @@ pampa_read_real_next:
     movzbq -1(%rbp), %rax
     cmp $10, %rax                   # '\n'
     je pampa_read_real_done
+    cmp $13, %rax                   # '\r'
+    je pampa_read_real_next
+    cmp $32, %rax                   # ' '
+    je pampa_read_real_space
+    cmp $9, %rax                    # '\t'
+    je pampa_read_real_space
     cmp $45, %rax                   # '-'
-    jne pampa_read_real_point
-    mov $1, %r9
-    jmp pampa_read_real_next
-pampa_read_real_point:
+    je pampa_read_real_minus
+    cmp $43, %rax                   # '+'
+    je pampa_read_real_sign
     cmp $46, %rax                   # '.'
-    jne pampa_read_real_digit
-    movq $1, -16(%rbp)
-    jmp pampa_read_real_next
-pampa_read_real_digit:
+    je pampa_read_real_point
     sub $48, %rax                   # '0'
     cmp $9, %rax
-    ja pampa_read_real_next         # not a digit
+    ja pampa_read_real_invalid      # not a digit
+    cmp $3, %r10
+    je pampa_read_real_invalid      # a digit after the spaces that end the number
+    cmp $4, %r10
+    je pampa_read_real_fraction
+    mov $2, %r10
+    jmp pampa_read_real_digit
+pampa_read_real_fraction:
+    incq -24(%rbp)
+pampa_read_real_digit:
+    incq -16(%rbp)
+    cmpq $18, -16(%rbp)
+    ja pampa_read_real_invalid      # more digits than a 64-bit integer holds exactly
     imul $10, %r8
     add %rax, %r8
-    cmpq $0, -16(%rbp)
-    je pampa_read_real_next
-    inc %r10
+    jmp pampa_read_real_next
+pampa_read_real_space:
+    cmp $1, %r10
+    je pampa_read_real_invalid      # a space between the sign and the digits
+    cmp $2, %r10
+    je pampa_read_real_end_number
+    cmp $4, %r10
+    jne pampa_read_real_next
+pampa_read_real_end_number:
+    mov $3, %r10
+    jmp pampa_read_real_next
+pampa_read_real_minus:
+    mov $1, %r9
+pampa_read_real_sign:
+    test %r10, %r10
+    jnz pampa_read_real_invalid     # a sign that does not open the number
+    mov $1, %r10
+    jmp pampa_read_real_next
+pampa_read_real_point:
+    cmp $2, %r10
+    ja pampa_read_real_invalid      # a second '.', or one after the number
+    mov $4, %r10
     jmp pampa_read_real_next
 pampa_read_real_done:
+    cmpq $0, -16(%rbp)
+    je pampa_read_real_invalid      # no digit
     cvtsi2sd %r8, %xmm0
     movsd pampa_ten(%rip), %xmm1
+    mov -24(%rbp), %r10
 pampa_read_real_scale:
     test %r10, %r10                 # dividing by 10 once for each digit after the '.'
-    jz pampa_read_real_sign
+    jz pampa_read_real_sign_bit
     divsd %xmm1, %xmm0
     dec %r10
     jmp pampa_read_real_scale
-pampa_read_real_sign:
+pampa_read_real_sign_bit:
     movq %xmm0, %rax
     test %r9, %r9
     jz pampa_read_real_end
@@ -246,6 +285,15 @@ pampa_read_real_sign:
 pampa_read_real_end:
     leave
     ret
+pampa_read_real_invalid:
+    mov $1, %rax                    # write
+    mov $2, %rdi                    # standard error
+    lea pampa_invalid_real(%rip), %rsi
+    mov $pampa_invalid_real_length, %rdx
+    syscall
+    mov $60, %rax                   # exit
+    mov $1, %rdi
+    syscall
 
 # Writes the character in the low byte of %rdi.
 pampa_print_char:
@@ -436,16 +484,16 @@ pampa_read_string_end:
     leave
     ret
 
-# Reads one line from the standard input and returns it in %rax as a signed
-# integer. Reads byte by byte, so the next leia finds the following line;
-# skips characters that are not digits; an empty line or the end of the
-# input gives 0.
+# Reads one line from the standard input and returns in %rax the inteiro it holds: an optional
+# sign and at least one digit, with spaces around, from -2147483648 to 2147483647. Any other
+# line, or the end of the input, stops the program with a message and exit status 1.
 pampa_read_int:
     push %rbp
     mov %rsp, %rbp
     sub $16, %rsp
     xor %r8, %r8                    # %r8 = value read so far
     xor %r9, %r9                    # %r9 = 1 when a '-' was read
+    xor %r10, %r10                  # %r10 = 0 before the number, 1 after its sign, 2 in its digits, 3 after them
 pampa_read_int_next:
     mov $0, %rax                    # read
     mov $0, %rdi                    # standard input
@@ -457,25 +505,66 @@ pampa_read_int_next:
     movzbq -1(%rbp), %rax
     cmp $10, %rax                   # '\n'
     je pampa_read_int_done
+    cmp $13, %rax                   # '\r'
+    je pampa_read_int_next
+    cmp $32, %rax                   # ' '
+    je pampa_read_int_space
+    cmp $9, %rax                    # '\t'
+    je pampa_read_int_space
     cmp $45, %rax                   # '-'
-    jne pampa_read_int_digit
-    mov $1, %r9
-    jmp pampa_read_int_next
-pampa_read_int_digit:
+    je pampa_read_int_minus
+    cmp $43, %rax                   # '+'
+    je pampa_read_int_sign
     sub $48, %rax                   # '0'
     cmp $9, %rax
-    ja pampa_read_int_next          # not a digit (unsigned compare also catches bytes below '0')
+    ja pampa_read_int_invalid       # not a digit (unsigned compare also catches bytes below '0')
+    cmp $3, %r10
+    je pampa_read_int_invalid       # a digit after the spaces that end the number
+    mov $2, %r10
     imul $10, %r8
     add %rax, %r8
+    mov $2147483648, %rcx
+    cmp %rcx, %r8
+    ja pampa_read_int_invalid       # stopping before the value grows past any inteiro
+    jmp pampa_read_int_next
+pampa_read_int_space:
+    cmp $1, %r10
+    je pampa_read_int_invalid       # a space between the sign and the digits
+    cmp $2, %r10
+    jne pampa_read_int_next
+    mov $3, %r10
+    jmp pampa_read_int_next
+pampa_read_int_minus:
+    mov $1, %r9
+pampa_read_int_sign:
+    test %r10, %r10
+    jnz pampa_read_int_invalid      # a sign that does not open the number
+    mov $1, %r10
     jmp pampa_read_int_next
 pampa_read_int_done:
+    cmp $2, %r10
+    jb pampa_read_int_invalid       # no digit
     mov %r8, %rax
     test %r9, %r9
-    jz pampa_read_int_end
-    neg %rax
-pampa_read_int_end:
+    jnz pampa_read_int_negative
+    mov $2147483647, %rcx
+    cmp %rcx, %rax
+    ja pampa_read_int_invalid       # 2147483648 is an inteiro only when negative
     leave
     ret
+pampa_read_int_negative:
+    neg %rax
+    leave
+    ret
+pampa_read_int_invalid:
+    mov $1, %rax                    # write
+    mov $2, %rdi                    # standard error
+    lea pampa_invalid_int(%rip), %rsi
+    mov $pampa_invalid_int_length, %rdx
+    syscall
+    mov $60, %rax                   # exit
+    mov $1, %rdi
+    syscall
 
 # Reads one line from the standard input and returns 1 for "verdadeiro" and 0
 # for "falso" in %rax, ignoring spaces and '\r'. Any other line, or the end of
@@ -565,6 +654,12 @@ pampa_false:
 pampa_invalid_bool:
     .ascii "Runtime error: leia expected verdadeiro or falso\n"
     .set pampa_invalid_bool_length, . - pampa_invalid_bool
+pampa_invalid_int:
+    .ascii "Runtime error: leia expected an inteiro\n"
+    .set pampa_invalid_int_length, . - pampa_invalid_int
+pampa_invalid_real:
+    .ascii "Runtime error: leia expected a real\n"
+    .set pampa_invalid_real_length, . - pampa_invalid_real
 pampa_invalid_char:
     .ascii "Runtime error: leia expected a caracter\n"
     .set pampa_invalid_char_length, . - pampa_invalid_char
